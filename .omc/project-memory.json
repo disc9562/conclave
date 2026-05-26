@@ -9,7 +9,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": null,
+    "buildCommand": "cd E:/AProject/TianX/Personal/dreamfield && bunx tsc --noEmit 2>&1 | head -120",
     "testCommand": null,
     "lintCommand": null,
     "devCommand": null,
@@ -53,6 +53,30 @@
       "path": ".superpowers\\brainstorm\\1716-1779810984\\content\\provider-v2.html",
       "accessCount": 4,
       "lastAccessed": 1779813224966,
+      "type": "file"
+    },
+    {
+      "path": "preload.ts",
+      "accessCount": 3,
+      "lastAccessed": 1779817079788,
+      "type": "file"
+    },
+    {
+      "path": "bin\\dreamcoder",
+      "accessCount": 3,
+      "lastAccessed": 1779817079832,
+      "type": "file"
+    },
+    {
+      "path": ".env.example",
+      "accessCount": 3,
+      "lastAccessed": 1779817079918,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 3,
+      "lastAccessed": 1779818225651,
       "type": "file"
     },
     {
@@ -131,30 +155,6 @@
       "path": "docs\\superpowers\\plans\\2026-05-27-dreamcoder-mvp.md",
       "accessCount": 2,
       "lastAccessed": 1779815440446,
-      "type": "file"
-    },
-    {
-      "path": "bin\\dreamcoder",
-      "accessCount": 2,
-      "lastAccessed": 1779816116844,
-      "type": "file"
-    },
-    {
-      "path": "preload.ts",
-      "accessCount": 2,
-      "lastAccessed": 1779816126911,
-      "type": "file"
-    },
-    {
-      "path": ".env.example",
-      "accessCount": 2,
-      "lastAccessed": 1779816204429,
-      "type": "file"
-    },
-    {
-      "path": "README.md",
-      "accessCount": 1,
-      "lastAccessed": 1779810007781,
       "type": "file"
     },
     {
