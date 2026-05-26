@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-26T18:09:48.894Z",
+  "updatedAt": "2026-05-26T18:25:34.471Z",
   "missions": [
     {
       "id": "session:07db39b9-52cd-4784-b90c-5798235d2a40:none",
@@ -7,15 +7,15 @@
       "name": "none",
       "objective": "Session mission",
       "createdAt": "2026-05-26T17:12:28.794Z",
-      "updatedAt": "2026-05-26T18:09:48.894Z",
+      "updatedAt": "2026-05-26T18:25:34.471Z",
       "status": "running",
       "workerCount": 4,
       "taskCounts": {
         "total": 4,
         "pending": 0,
         "blocked": 0,
-        "inProgress": 2,
-        "completed": 2,
+        "inProgress": 1,
+        "completed": 3,
         "failed": 0
       },
       "agents": [
@@ -53,11 +53,11 @@
           "name": "executor:a339115",
           "role": "executor",
           "ownership": "a33911549372f55f8",
-          "status": "running",
+          "status": "done",
           "currentStep": null,
-          "latestUpdate": null,
+          "latestUpdate": "completed",
           "completedSummary": null,
-          "updatedAt": "2026-05-26T18:09:48.894Z"
+          "updatedAt": "2026-05-26T18:25:34.471Z"
         }
       ],
       "timeline": [
@@ -84,6 +84,14 @@
           "agent": "executor:a339115",
           "detail": "started executor:a339115",
           "sourceKey": "session-start:a33911549372f55f8"
+        },
+        {
+          "id": "session-stop:a33911549372f55f8:2026-05-26T18:25:34.471Z",
+          "at": "2026-05-26T18:25:34.471Z",
+          "kind": "completion",
+          "agent": "executor:a339115",
+          "detail": "completed",
+          "sourceKey": "session-stop:a33911549372f55f8"
         }
       ]
     }
