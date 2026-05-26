@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"ls E:/AProject/TianX/Personal/dreamfield/_reference/cc-haha/desktop/ 2>/dev/null</｜DSML｜parameter>\",\"description\":\"Check reference desktop dir structure\"}",
+  "error": "Exit code 2\n/usr/bin/bash: eval: line 1: syntax error near unexpected token `newline'\n/usr/bin/bash: eval: line 1: `ls E:/AProject/TianX/Personal/dreamfield/_reference/cc-haha/desktop/ 2>/dev/null</｜DSML｜parameter>'",
+  "timestamp": "2026-05-26T17:13:29.365Z",
+  "retry_count": 2
+}

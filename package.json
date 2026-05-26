@@ -1,0 +1,50 @@
+{
+  "name": "dreamcoder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "dreamcoder": "./bin/dreamcoder"
+  },
+  "scripts": {
+    "dreamcoder": "bun run ./bin/dreamcoder",
+    "start": "bun run ./bin/dreamcoder",
+    "dev:server": "SERVER_PORT=3456 bun run src/server/index.ts",
+    "dev:desktop": "cd desktop && bun run dev",
+    "build:desktop": "cd desktop && bun run build",
+    "build:sidecar": "bun build --compile ./desktop/sidecars/dreamcoder-sidecar.ts --outfile desktop/src-tauri/binaries/dreamcoder-sidecar.exe",
+    "test": "bun test",
+    "test:desktop": "cd desktop && bun run test",
+    "lint:desktop": "cd desktop && bun run lint"
+  },
+  "dependencies": {
+    "@anthropic-ai/sandbox-runtime": "^0.0.44",
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.1020.0",
+    "@commander-js/extra-typings": "^14.0.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "ajv": "^8.18.0",
+    "auto-bind": "^5.0.1",
+    "chalk": "^5.6.2",
+    "chokidar": "^5.0.0",
+    "diff": "^8.0.4",
+    "execa": "^9.6.1",
+    "ignore": "^7.0.5",
+    "jsonc-parser": "^3.3.1",
+    "lodash-es": "^4.17.23",
+    "lru-cache": "^11.2.7",
+    "marked": "^17.0.5",
+    "p-map": "^7.0.4",
+    "picomatch": "^4.0.4",
+    "semver": "^7.7.4",
+    "shell-quote": "^1.8.3",
+    "strip-ansi": "^7.2.0",
+    "tree-kill": "^1.2.2",
+    "ws": "^8.20.0",
+    "yaml": "^2.8.3",
+    "zod": "^4.3.6"
+  },
+  "overrides": {
+    "follow-redirects": "^1.16.0"
+  }
+}
