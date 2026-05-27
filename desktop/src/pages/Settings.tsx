@@ -39,6 +39,7 @@ import { useUpdateStore } from '../stores/updateStore'
 import { formatBytes } from '../lib/formatBytes'
 import { isTauriRuntime } from '../lib/desktopRuntime'
 import { isValidHttpProxyUrl } from '../lib/validation'
+import { ProxyConfigForm } from '../components/settings/ProxyConfigForm'
 import {
   getDesktopNotificationPermission,
   notifyDesktop,
@@ -1615,19 +1616,6 @@ function GeneralSettings() {
     { value: 'disabled', label: t('settings.general.webSearch.mode.disabled') },
   ]
 
-  const NETWORK_PROXY_MODES: Array<{ value: NetworkProxyMode; label: string; description: string }> = [
-    {
-      value: 'system',
-      label: t('settings.general.networkProxyModeSystem'),
-      description: t('settings.general.networkProxyModeSystemDescription'),
-    },
-    {
-      value: 'manual',
-      label: t('settings.general.networkProxyModeManual'),
-      description: t('settings.general.networkProxyModeManualDescription'),
-    },
-  ]
-
   const notificationStatusLabel: Record<DesktopNotificationPermission, string> = {
     granted: t('settings.general.notificationsStatusGranted'),
     denied: t('settings.general.notificationsStatusDenied'),
@@ -2078,54 +2066,41 @@ function GeneralSettings() {
         <h2 className="text-base font-semibold text-[var(--color-text-primary)] mb-1">{t('settings.general.networkTitle')}</h2>
         <p className="text-sm text-[var(--color-text-tertiary)] mb-3">{t('settings.general.networkDescription')}</p>
         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-container-low)] px-4 py-4">
-          <div className="grid grid-cols-2 gap-2">
-            {NETWORK_PROXY_MODES.map((mode) => (
-              <button
-                key={mode.value}
-                type="button"
-                onClick={() => {
-                  setNetworkDraft((current) => ({
-                    ...current,
-                    proxy: { ...current.proxy, mode: mode.value },
-                  }))
-                  setNetworkSaveError(null)
-                }}
-                aria-pressed={networkDraft.proxy.mode === mode.value}
-                className={`rounded-lg border px-3 py-2 text-left transition-colors ${
-                  networkDraft.proxy.mode === mode.value
-                    ? 'border-[var(--color-brand)] bg-[var(--color-surface-selected)] text-[var(--color-text-primary)]'
-                    : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
-                }`}
-              >
-                <div className="text-xs font-semibold">{mode.label}</div>
-                <div className="mt-1 text-[11px] leading-4 text-[var(--color-text-tertiary)]">
-                  {mode.description}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {networkDraft.proxy.mode === 'manual' && (
-            <div className="mt-4">
-              <Input
-                id="network-proxy-url"
-                label={t('settings.general.networkProxyUrl')}
-                value={networkDraft.proxy.url}
-                placeholder="http://127.0.0.1:7890"
-                autoComplete="off"
-                onChange={(event) => {
-                  setNetworkDraft((current) => ({
-                    ...current,
-                    proxy: { ...current.proxy, url: event.target.value },
-                  }))
-                  setNetworkSaveError(null)
-                }}
-              />
-              <p className={`mt-1 text-[11px] leading-4 ${networkProxyError ? 'text-[var(--color-error)]' : 'text-[var(--color-text-tertiary)]'}`}>
-                {networkProxyError ?? t('settings.general.networkProxyUrlHint')}
-              </p>
-            </div>
-          )}
+          <ProxyConfigForm
+            mode={networkDraft.proxy.mode}
+            url={networkDraft.proxy.url}
+            isDirty={networkDirty}
+            isSaving={isSavingNetwork}
+            error={networkSaveError}
+            labels={{
+              modeSystemLabel: t('settings.general.networkProxyModeSystem'),
+              modeSystemDesc: t('settings.general.networkProxyModeSystemDescription'),
+              modeManualLabel: t('settings.general.networkProxyModeManual'),
+              modeManualDesc: t('settings.general.networkProxyModeManualDescription'),
+              urlLabel: t('settings.general.networkProxyUrl'),
+              urlPlaceholder: 'http://127.0.0.1:7890',
+              urlHint: t('settings.general.networkProxyUrlHint'),
+              urlRequiredError: t('settings.general.networkProxyUrlRequired'),
+              urlInvalidError: t('settings.general.networkProxyUrlInvalid'),
+              scopeHint: t('settings.general.networkScopeHint'),
+              saveLabel: t('settings.general.networkSave'),
+            }}
+            onModeChange={(mode) => {
+              setNetworkDraft((current) => ({
+                ...current,
+                proxy: { ...current.proxy, mode },
+              }))
+              setNetworkSaveError(null)
+            }}
+            onUrlChange={(url) => {
+              setNetworkDraft((current) => ({
+                ...current,
+                proxy: { ...current.proxy, url },
+              }))
+              setNetworkSaveError(null)
+            }}
+            onSave={() => void saveNetworkSettings()}
+          />
 
           <div className="mt-4">
             <div className="mb-2 flex items-center justify-between gap-3">
@@ -2198,22 +2173,6 @@ function GeneralSettings() {
             >
               {networkTimeoutError ?? t('settings.general.networkTimeoutHint')}
             </p>
-          </div>
-
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <p className="min-w-0 text-[11px] leading-4 text-[var(--color-text-tertiary)]">
-              {t('settings.general.networkScopeHint')}
-            </p>
-            <Button
-              size="sm"
-              variant="secondary"
-              className="min-w-[72px] px-4 whitespace-nowrap"
-              disabled={!networkDirty || !!networkProxyError || !!networkTimeoutError || isSavingNetwork}
-              loading={isSavingNetwork}
-              onClick={() => void saveNetworkSettings()}
-            >
-              {t('settings.general.networkSave')}
-            </Button>
           </div>
 
           {networkSaveError && (
@@ -3470,8 +3429,6 @@ const AUTHOR_GITHUB = 'https://github.com/GoDiao'
 function AboutSettings() {
   const t = useTranslation()
   const [version, setVersion] = useState('')
-  const updateProxy = useSettingsStore((s) => s.updateProxy)
-  const setUpdateProxy = useSettingsStore((s) => s.setUpdateProxy)
   const updateStatus = useUpdateStore((s) => s.status)
   const availableVersion = useUpdateStore((s) => s.availableVersion)
   const releaseNotes = useUpdateStore((s) => s.releaseNotes)
@@ -3483,7 +3440,6 @@ function AboutSettings() {
   const checkForUpdates = useUpdateStore((s) => s.checkForUpdates)
   const installUpdate = useUpdateStore((s) => s.installUpdate)
   const initialize = useUpdateStore((s) => s.initialize)
-  const [showUpdateProxyAdvanced, setShowUpdateProxyAdvanced] = useState(false)
   const [updateProxyDraft, setUpdateProxyDraft] = useState(updateProxy)
   const [updateProxySaveError, setUpdateProxySaveError] = useState<string | null>(null)
   const [isSavingUpdateProxy, setIsSavingUpdateProxy] = useState(false)
@@ -3513,10 +3469,6 @@ function AboutSettings() {
     setUpdateProxyDraft(updateProxy)
     setUpdateProxySaveError(null)
   }, [updateProxy])
-
-  const openUrl = (url: string) => {
-    import('@tauri-apps/plugin-shell').then((mod) => mod.open(url)).catch(() => window.open(url, '_blank'))
-  }
 
   const checkedAtText =
     checkedAt
