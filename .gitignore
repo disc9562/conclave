@@ -76,6 +76,7 @@ runtime/__pycache__
 
 # IDE
 .idea
+.vscode
 
 # Codex logs
 .codex-logs/

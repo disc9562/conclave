@@ -48,7 +48,7 @@ describe('DirectoryPicker', () => {
         projectPath: '/workspace/project',
         realPath: '/workspace/project',
         projectName: 'project',
-        repoName: 'NanmiCoder/OpenCutSkill',
+        repoName: 'GoDiao/dreamcoder',
         branch: 'main',
         isGit: true,
         modifiedAt: '2026-05-07T00:00:00.000Z',
@@ -65,8 +65,8 @@ describe('DirectoryPicker', () => {
 
     fireEvent.click(screen.getByRole('button'))
 
-    const trigger = await waitFor(() => screen.getAllByRole('button', { name: /NanmiCoder\/OpenCutSkill/ })[0])
-    expect(trigger).toHaveTextContent('NanmiCoder/OpenCutSkill')
+    const trigger = await waitFor(() => screen.getAllByRole('button', { name: /GoDiao\/dreamcoder/ })[0])
+    expect(trigger).toHaveTextContent('GoDiao/dreamcoder')
     expect(trigger).not.toHaveTextContent('main')
   })
 

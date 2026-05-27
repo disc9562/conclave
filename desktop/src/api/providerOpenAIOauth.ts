@@ -1,8 +1,8 @@
-// desktop/src/api/hahaOpenAIOAuth.ts
+// desktop/src/api/providerOpenAIOauth.ts
 
 import { api, getBaseUrl } from './client'
 
-export type HahaOpenAIOAuthStatus =
+export type ProviderOpenAIOAuthStatus =
   | { loggedIn: false }
   | {
       loggedIn: true
@@ -20,19 +20,19 @@ function currentServerPort(): number {
   return parsed
 }
 
-export const hahaOpenAIOAuthApi = {
+export const providerOpenAIOAuthApi = {
   start() {
     return api.post<{ authorizeUrl: string; state: string }>(
-      '/api/haha-openai-oauth/start',
+      '/api/provider-openai-oauth/start',
       { serverPort: currentServerPort() },
     )
   },
 
   status() {
-    return api.get<HahaOpenAIOAuthStatus>('/api/haha-openai-oauth')
+    return api.get<ProviderOpenAIOAuthStatus>('/api/provider-openai-oauth')
   },
 
   logout() {
-    return api.delete<{ ok: true }>('/api/haha-openai-oauth')
+    return api.delete<{ ok: true }>('/api/provider-openai-oauth')
   },
 }

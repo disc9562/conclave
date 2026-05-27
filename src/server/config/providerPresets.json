@@ -3,7 +3,7 @@
     "id": "dreamfield",
     "name": "DreamField 官方",
     "baseUrl": "https://www.dreamfield.top",
-    "apiFormat": "openai",
+    "apiFormat": "anthropic",
     "defaultModels": {
       "main": "deepseek-v4-pro",
       "haiku": "DeepSeek-V4-Flash",
@@ -12,7 +12,7 @@
     },
     "needsApiKey": true,
     "websiteUrl": "https://www.dreamfield.top",
-    "authStrategy": "api-key",
+    "authStrategy": "auth_token",
     "promoText": "DreamField — AI 算力服务平台，DreamCoder 官方推荐 Provider",
     "featured": true,
     "modelContextWindows": {
@@ -52,7 +52,7 @@
     "id": "qwen",
     "name": "通义千问",
     "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-    "apiFormat": "openai",
+    "apiFormat": "openai_chat",
     "defaultModels": {
       "main": "qwen-max",
       "haiku": "qwen-turbo",
@@ -61,7 +61,7 @@
     },
     "needsApiKey": true,
     "websiteUrl": "https://dashscope.console.aliyun.com",
-    "authStrategy": "api-key"
+    "authStrategy": "api_key"
   },
   {
     "id": "kimi",
@@ -157,6 +157,7 @@
       "opus": ""
     },
     "needsApiKey": true,
+    "websiteUrl": "",
     "authStrategy": "auth_token"
   }
 ]

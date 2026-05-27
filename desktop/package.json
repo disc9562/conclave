@@ -1,8 +1,20 @@
 {
   "name": "dreamcoder-desktop",
-  "private": true,
+  "private": false,
+  "description": "DreamCoder — AI Coding Agent Desktop App",
   "version": "0.3.1",
+  "author": "GoDiao",
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GoDiao/dreamcoder.git",
+    "directory": "desktop"
+  },
+  "bugs": {
+    "url": "https://github.com/GoDiao/dreamcoder/issues"
+  },
+  "homepage": "https://github.com/GoDiao/dreamcoder#readme",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -35,6 +47,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.0.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.3",

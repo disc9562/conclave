@@ -1,15 +1,12 @@
-// desktop/src/stores/hahaOpenAIOAuthStore.ts
+// desktop/src/stores/providerOAuthStore.ts
 
 import { create } from 'zustand'
-import {
-  hahaOpenAIOAuthApi,
-  type HahaOpenAIOAuthStatus,
-} from '../api/hahaOpenAIOAuth'
+import { providerOAuthApi, type ProviderOAuthStatus } from '../api/providerOAuth'
 
 const POLL_INTERVAL_MS = 2_000
 
-type HahaOpenAIOAuthState = {
-  status: HahaOpenAIOAuthStatus | null
+type ProviderOAuthState = {
+  status: ProviderOAuthStatus | null
   isPolling: boolean
   isLoading: boolean
   error: string | null
@@ -21,7 +18,7 @@ type HahaOpenAIOAuthState = {
   stopPolling: () => void
 }
 
-export const useHahaOpenAIOAuthStore = create<HahaOpenAIOAuthState>((set, get) => {
+export const useProviderOAuthStore = create<ProviderOAuthState>((set, get) => {
   let pollTimer: ReturnType<typeof setTimeout> | null = null
 
   return {
@@ -32,7 +29,7 @@ export const useHahaOpenAIOAuthStore = create<HahaOpenAIOAuthState>((set, get) =
 
     fetchStatus: async () => {
       try {
-        const status = await hahaOpenAIOAuthApi.status()
+        const status = await providerOAuthApi.status()
         set({ status, error: null })
       } catch (err) {
         set({ error: err instanceof Error ? err.message : String(err) })
@@ -42,7 +39,7 @@ export const useHahaOpenAIOAuthStore = create<HahaOpenAIOAuthState>((set, get) =
     login: async () => {
       set({ isLoading: true, error: null })
       try {
-        const res = await hahaOpenAIOAuthApi.start()
+        const res = await providerOAuthApi.start()
         set({ isLoading: false })
         return { authorizeUrl: res.authorizeUrl }
       } catch (err) {
@@ -56,9 +53,9 @@ export const useHahaOpenAIOAuthStore = create<HahaOpenAIOAuthState>((set, get) =
 
     logout: async () => {
       get().stopPolling()
-      set({ isLoading: true, error: null })
+      set({ isLoading: true })
       try {
-        await hahaOpenAIOAuthApi.logout()
+        await providerOAuthApi.logout()
         set({ status: { loggedIn: false }, isLoading: false })
       } catch (err) {
         set({
@@ -75,7 +72,6 @@ export const useHahaOpenAIOAuthStore = create<HahaOpenAIOAuthState>((set, get) =
 
       const scheduleNext = () => {
         pollTimer = setTimeout(async () => {
-          pollTimer = null
           await get().fetchStatus()
           const cur = get().status
           if (cur && cur.loggedIn) {

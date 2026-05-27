@@ -153,7 +153,7 @@ export const en = {
 
   // Settings > Usage
   'settings.activity.title': 'Token usage',
-  'settings.activity.subtitleLoading': 'Based on local Claude Code CLI session transcripts',
+  'settings.activity.subtitleLoading': 'Based on local DreamCoder CLI session transcripts',
   'settings.activity.metric.yesterday': 'Yesterday',
   'settings.activity.metric.today': 'Today',
   'settings.activity.metric.last4': 'Last 4 days',
@@ -383,7 +383,7 @@ export const en = {
 
   // Settings > Adapters
   'settings.tab.adapters': 'IM Adapters',
-  'settings.adapters.description': 'Configure IM adapters to chat with Claude Code via WeChat, DingTalk, Telegram, or Feishu.',
+  'settings.adapters.description': 'Configure IM adapters to chat with DreamCoder via WeChat, DingTalk, Telegram, or Feishu.',
   'settings.adapters.telegram': 'Telegram',
   'settings.adapters.feishu': 'Feishu',
   'settings.adapters.wechat': 'WeChat',
@@ -469,7 +469,7 @@ export const en = {
 
   // Settings > MCP
   'settings.mcp.title': 'MCP servers',
-  'settings.mcp.description': 'Connect external tools and data sources for Claude Code. Local, project, and user scopes follow the same behavior as the CLI.',
+  'settings.mcp.description': 'Connect external tools and data sources for DreamCoder. Local, project, and user scopes follow the same behavior as the CLI.',
   'settings.mcp.addServer': 'Add server',
   'settings.mcp.empty': 'No MCP servers configured yet',
   'settings.mcp.emptyHint': 'Add a custom stdio, HTTP, or SSE MCP server to start extending tool access.',
@@ -492,7 +492,7 @@ export const en = {
   'settings.mcp.currentProjectHint': 'Selected project: {path}',
   'settings.mcp.form.back': 'Back to servers',
   'settings.mcp.form.createTitle': 'Connect to a custom MCP',
-  'settings.mcp.form.createHint': 'Set up a custom MCP server with the fields supported by Claude Code today.',
+  'settings.mcp.form.createHint': 'Set up a custom MCP server with the fields supported by DreamCoder today.',
   'settings.mcp.form.editTitle': 'Update {name} MCP',
   'settings.mcp.form.editHint': 'Review connection details, save changes, or reconnect this server from the desktop app.',
   'settings.mcp.form.transportLocked': 'If you would like to switch MCP server type, uninstall first.',
@@ -704,7 +704,7 @@ export const en = {
   'settings.plugins.scope.managed': 'Managed',
   'settings.plugins.scope.builtin': 'Built-in',
   'settings.plugins.empty': 'No plugins installed',
-  'settings.plugins.emptyHint': 'Install plugins from Claude Code to manage them here.',
+  'settings.plugins.emptyHint': 'Install plugins from DreamCoder to manage them here.',
   'settings.plugins.back': 'Back to list',
   'settings.plugins.noDescription': 'No description available for this plugin.',
   'settings.plugins.errorCount': '{count} errors',
@@ -745,6 +745,7 @@ export const en = {
   'settings.about.socialMedia': 'Social Media',
   'settings.about.updates': 'App Updates',
   'settings.about.updatesDesc': 'Check GitHub Releases, download the installer, and relaunch after install.',
+  'settings.about.updatesNotAvailable': 'The first public release has not been published yet. Update checking is disabled.',
 
   // Settings > Computer Use
   'settings.tab.computerUse': 'Computer Use',
@@ -832,6 +833,8 @@ export const en = {
   'settings.general.appearanceDescription': 'Switch between the warm classic workspace, dark workspace, and a pure white workspace.',
   'settings.general.appearance.light': 'Warm Classic',
   'settings.general.appearance.dark': 'Dark',
+  'settings.general.appearance.dreamfield': 'DreamField Emerald',
+  'settings.general.appearance.amber': 'Autumn Amber',
   'settings.general.appearance.white': 'Pure White',
   'settings.general.languageTitle': 'Language',
   'settings.general.languageDescription': 'Choose the display language for the application.',
@@ -960,8 +963,8 @@ export const en = {
   'settings.general.uiZoomReset': 'Reset UI zoom to 100%',
 
   // ─── Empty Session ──────────────────────────────────────
-  'empty.title': 'New session',
-  'empty.subtitle': 'Start a fresh coding session. Claude is ready to help you build, debug, and architect your project.',
+  'empty.title': 'Start Your AI Coding Journey',
+  'empty.subtitle': 'DreamCoder — Official DreamField Coding Agent. Type your request below to begin',
   'empty.placeholder': 'Ask anything...',
   'empty.addFiles': 'Add files or photos',
   'empty.slashCommands': 'Slash commands',

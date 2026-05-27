@@ -68,6 +68,7 @@ type SettingsStore = {
   h5AccessError: string | null
   responseLanguage: string
   uiZoom: number
+  onboardingCompleted: boolean
   isLoading: boolean
   error: string | null
 
@@ -99,6 +100,7 @@ type SettingsStore = {
   fetchAppMode: () => Promise<void>
   setAppMode: (mode: AppMode, portableDir?: string | null) => Promise<void>
   setUiZoom: (zoom: number) => void
+  setOnboardingCompleted: () => void
 }
 
 type NetworkSettingsInput = Partial<Omit<NetworkSettings, 'proxy'>> & {
@@ -150,6 +152,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   h5AccessError: null,
   responseLanguage: '',
   uiZoom: readStoredAppZoomLevel(),
+  onboardingCompleted: false,
   isLoading: false,
   error: null,
 
@@ -165,6 +168,10 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     const level = normalizeAppZoomLevel(zoom)
     set({ uiZoom: level })
     void applyAppZoomLevel(level)
+  },
+
+  setOnboardingCompleted: () => {
+    set({ onboardingCompleted: true })
   },
 
   fetchAll: async () => {

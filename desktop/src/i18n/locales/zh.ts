@@ -155,7 +155,7 @@ export const zh: Record<TranslationKey, string> = {
 
   // Settings > Usage
   'settings.activity.title': 'Token 用量',
-  'settings.activity.subtitleLoading': '基于本机 Claude Code CLI 会话记录统计',
+  'settings.activity.subtitleLoading': '基于本机 DreamCoder CLI 会话记录统计',
   'settings.activity.metric.yesterday': '昨天',
   'settings.activity.metric.today': '今天',
   'settings.activity.metric.last4': '近 4 天',
@@ -385,7 +385,7 @@ export const zh: Record<TranslationKey, string> = {
 
   // Settings > Adapters
   'settings.tab.adapters': 'IM 接入',
-  'settings.adapters.description': '配置即时通讯适配器，通过微信、钉钉、Telegram 或飞书与 Claude Code 对话。',
+  'settings.adapters.description': '配置即时通讯适配器，通过微信、钉钉、Telegram 或飞书与 DreamCoder 对话。',
   'settings.adapters.telegram': 'Telegram',
   'settings.adapters.feishu': '飞书',
   'settings.adapters.wechat': '微信',
@@ -494,7 +494,7 @@ export const zh: Record<TranslationKey, string> = {
   'settings.mcp.currentProjectHint': '当前项目：{path}',
   'settings.mcp.form.back': '返回服务列表',
   'settings.mcp.form.createTitle': '连接自定义 MCP',
-  'settings.mcp.form.createHint': '按当前 Claude Code 支持的字段添加一个自定义 MCP 服务。',
+  'settings.mcp.form.createHint': '按当前 DreamCoder 支持的字段添加一个自定义 MCP 服务。',
   'settings.mcp.form.editTitle': '更新 {name} MCP',
   'settings.mcp.form.editHint': '查看连接信息、保存修改，或直接在桌面端重连这个服务。',
   'settings.mcp.form.transportLocked': '如果你想切换 MCP 服务类型，请先卸载后重新添加。',
@@ -706,7 +706,7 @@ export const zh: Record<TranslationKey, string> = {
   'settings.plugins.scope.managed': '托管',
   'settings.plugins.scope.builtin': '内置',
   'settings.plugins.empty': '暂无已安装插件',
-  'settings.plugins.emptyHint': '先在 Claude Code 里安装插件，桌面端就可以在这里管理。',
+  'settings.plugins.emptyHint': '先在 DreamCoder 里安装插件，桌面端就可以在这里管理。',
   'settings.plugins.back': '返回列表',
   'settings.plugins.noDescription': '这个插件没有可用描述。',
   'settings.plugins.errorCount': '{count} 个错误',
@@ -747,6 +747,7 @@ export const zh: Record<TranslationKey, string> = {
   'settings.about.socialMedia': '社交媒体',
   'settings.about.updates': '应用更新',
   'settings.about.updatesDesc': '检查 GitHub Releases，下载安装包，并在安装后自动重启。',
+  'settings.about.updatesNotAvailable': '首个公开版本尚未发布，更新检查暂未开放。',
 
   // Settings > Computer Use
   'settings.tab.computerUse': 'Computer Use',
@@ -834,6 +835,8 @@ export const zh: Record<TranslationKey, string> = {
   'settings.general.appearanceDescription': '在经典暖色、暗色与纯白工作区之间切换。',
   'settings.general.appearance.light': '经典暖色',
   'settings.general.appearance.dark': '暗色',
+  'settings.general.appearance.dreamfield': 'DreamField 翡翠',
+  'settings.general.appearance.amber': '秋日琥珀',
   'settings.general.appearance.white': '纯白',
   'settings.general.languageTitle': '语言',
   'settings.general.languageDescription': '选择应用程序的显示语言。',
@@ -962,8 +965,8 @@ export const zh: Record<TranslationKey, string> = {
   'settings.general.uiZoomReset': '重置界面缩放到 100%',
 
   // ─── Empty Session ──────────────────────────────────────
-  'empty.title': '新建会话',
-  'empty.subtitle': '开始一个新的编码会话。Claude 已准备好帮你构建、调试和架构你的项目。',
+  'empty.title': '开始你的 AI 编程之旅',
+  'empty.subtitle': 'DreamCoder — DreamField 官方 Coding Agent，在下方输入你的需求开始对话',
   'empty.placeholder': '随便问点什么...',
   'empty.addFiles': '添加文件或图片',
   'empty.slashCommands': '斜杠命令',

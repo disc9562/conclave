@@ -6,7 +6,7 @@
 
 import { useEffect } from 'react'
 import { open as shellOpen } from '@tauri-apps/plugin-shell'
-import { useHahaOAuthStore } from '../../stores/hahaOAuthStore'
+import { useProviderOAuthStore } from '../../stores/providerOAuthStore'
 import { useTranslation } from '../../i18n'
 
 export function ClaudeOfficialLogin() {
@@ -20,7 +20,7 @@ export function ClaudeOfficialLogin() {
     logout,
     startPolling,
     stopPolling,
-  } = useHahaOAuthStore()
+  } = useProviderOAuthStore()
 
   useEffect(() => {
     fetchStatus()
@@ -35,7 +35,7 @@ export function ClaudeOfficialLogin() {
         startPolling()
       } catch (err) {
         console.error('[ClaudeOfficialLogin] shellOpen failed:', err)
-        useHahaOAuthStore.setState({
+        useProviderOAuthStore.setState({
           error: t('settings.claudeOfficialLogin.openBrowserFailed'),
         })
       }

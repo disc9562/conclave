@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { open as shellOpen } from '@tauri-apps/plugin-shell'
 import { Copy, LogIn, LogOut } from 'lucide-react'
-import { useHahaOpenAIOAuthStore } from '../../stores/hahaOpenAIOAuthStore'
+import { useProviderOpenAIOAuthStore } from '../../stores/providerOpenAIOAuthStore'
 import { useTranslation } from '../../i18n'
 import { copyTextToClipboard } from '../chat/clipboard'
 
@@ -19,7 +19,7 @@ export function ChatGPTOfficialLogin() {
     logout,
     startPolling,
     stopPolling,
-  } = useHahaOpenAIOAuthStore()
+  } = useProviderOpenAIOAuthStore()
 
   useEffect(() => {
     void fetchStatus()
@@ -43,7 +43,7 @@ export function ChatGPTOfficialLogin() {
         startPolling()
       } catch (err) {
         console.error('[ChatGPTOfficialLogin] shellOpen failed:', err)
-        useHahaOpenAIOAuthStore.setState({
+        useProviderOpenAIOAuthStore.setState({
           error: t('settings.chatgptOfficialLogin.openBrowserFailed'),
         })
       }
@@ -57,11 +57,11 @@ export function ChatGPTOfficialLogin() {
     const copied = await copyTextToClipboard(manualAuthorizeUrl)
     if (copied) {
       setManualAuthorizeUrl(null)
-      useHahaOpenAIOAuthStore.setState({ error: null })
+      useProviderOpenAIOAuthStore.setState({ error: null })
       startPolling()
       return
     }
-    useHahaOpenAIOAuthStore.setState({
+    useProviderOpenAIOAuthStore.setState({
       error: t('settings.chatgptOfficialLogin.copyLinkFailed'),
     })
   }

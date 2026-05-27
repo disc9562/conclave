@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { Check, ChevronDown, Clock, Folder, FolderOpen, FolderPlus, GitBranch, LoaderCircle, MoreHorizontal, Pin, PinOff, RefreshCw, RotateCcw, SquarePen, X } from 'lucide-react'
+import { DreamCoderIcon } from '../shared/DreamCoderIcon'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useUIStore } from '../../stores/uiStore'
 import { useTranslation, type TranslationKey } from '../../i18n'
@@ -620,17 +621,21 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
       <div className={`px-3 pb-2 ${isTauri && !isWindows ? 'pt-[44px]' : 'pt-3'}`}>
         <div className={`flex ${expanded ? 'items-center justify-between gap-3' : 'flex-col items-center gap-2'}`}>
           <div className={`flex min-w-0 items-center ${expanded ? 'gap-2.5' : 'justify-center'}`}>
-            <img src="/app-icon.png" alt="" className="h-8 w-8 flex-shrink-0" />
-            <span
-              className={`sidebar-copy ${expanded ? 'sidebar-copy--visible' : 'sidebar-copy--hidden'} text-[13px] font-semibold tracking-tight text-[var(--color-text-primary)]`}
-              style={{ fontFamily: 'var(--font-headline)' }}
+            <DreamCoderIcon size={32} />
+            <div
+              className={`sidebar-copy ${expanded ? 'sidebar-copy--visible' : 'sidebar-copy--hidden'} flex flex-col min-w-0`}
             >
-              Claude Code <span className="text-[var(--color-primary-container)]">DreamCoder</span>
-            </span>
+              <span
+                className="text-[13px] font-semibold tracking-tight text-[var(--color-text-primary)] truncate"
+                style={{ fontFamily: 'var(--font-headline)' }}
+              >
+                DreamCoder
+              </span>
+            </div>
           </div>
           <div className={`flex items-center ${expanded ? 'gap-1.5' : 'flex-col gap-2'}`}>
             <a
-              href="https://github.com/NanmiCoder/dreamcoder"
+              href="https://github.com/GoDiao/dreamcoder"
               target="_blank"
               rel="noopener noreferrer"
               className={`sidebar-copy ${expanded ? 'sidebar-copy--visible' : 'sidebar-copy--hidden'} inline-flex items-center justify-center rounded-md p-1 text-[var(--color-text-tertiary)] transition-colors hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-hover)]`}
@@ -683,7 +688,8 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
         >
           {t('sidebar.newSession')}
         </NavItem>
-        {!isMobile && (
+        {/* Phase 1: Scheduled Tasks hidden (Phase 4) */}
+        {/* !isMobile && (
           <NavItem
             active={activeTabId === SCHEDULED_TAB_ID}
             collapsed={!expanded}
@@ -697,7 +703,7 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
           >
             {t('sidebar.scheduled')}
           </NavItem>
-        )}
+        ) */}
       </div>
 
       {expanded ? (

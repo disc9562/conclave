@@ -95,7 +95,7 @@ export const mockTranscript = {
     },
   ],
   teamBar: [
-    { id: 'lead', role: 'Lead Claude', active: false, color: '#87736D' },
+    { id: 'lead', role: 'Lead DreamCoder', active: false, color: '#87736D' },
     { id: 'a2', role: 'Frontend Dev', active: true, color: '#dc2626' },
     { id: 'a3', role: 'Backend Architect', active: false, color: '#2563eb' },
   ],
@@ -140,7 +140,7 @@ export const mockScheduledTasks = {
 // ─── Session Controls ─────────────────────────────────────────────
 export const mockPermissionModes = [
   { id: 'ask', label: 'Ask permissions', description: 'Confirm every file edit or terminal command.', icon: 'lock' },
-  { id: 'auto', label: 'Auto accept edits', description: 'Claude writes to disk without asking.', icon: 'edit_note' },
+  { id: 'auto', label: 'Auto accept edits', description: 'DreamCoder writes to disk without asking.', icon: 'edit_note' },
   { id: 'plan', label: 'Plan mode', description: 'Architecture & reasoning only. No writes.', icon: 'architecture' },
   { id: 'bypass', label: 'Bypass permissions', description: 'Full root access for shell and file system.', icon: 'warning' },
 ]

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ApiError } from '../api/client'
+import { DreamCoderIcon } from '../components/shared/DreamCoderIcon'
 import { skillsApi } from '../api/skills'
 import { useTranslation } from '../i18n'
 import { useSessionStore } from '../stores/sessionStore'
@@ -530,11 +531,7 @@ export function EmptySession() {
         <div className={`flex flex-col items-center text-center ${
           isMobileComposer ? 'max-w-[300px]' : 'max-w-md'
         }`}>
-          <img
-            src="/app-icon.png"
-            alt="DreamCoder"
-            className={isMobileComposer ? 'mb-4 h-16 w-16' : 'mb-6 h-24 w-24'}
-          />
+          <DreamCoderIcon size={isMobileComposer ? 64 : 96} className={isMobileComposer ? 'mb-4' : 'mb-6'} />
           <h1
             className={`mb-2 font-extrabold tracking-tight text-[var(--color-text-primary)] ${
               isMobileComposer ? 'text-2xl' : 'text-3xl'

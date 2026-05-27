@@ -20,7 +20,7 @@ export function translate(
   key: TranslationKey,
   params?: Record<string, string | number>,
 ): string {
-  let text = translations[locale]?.[key] ?? translations.en[key] ?? key
+  let text = translations[locale]?.[key] ?? translations.zh[key] ?? translations.en[key] ?? key
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v))

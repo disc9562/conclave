@@ -19,6 +19,8 @@ import { useChatStore } from '../../stores/chatStore'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useTranslation } from '../../i18n'
 import { H5ConnectionView } from './H5ConnectionView'
+import { ProviderOnboarding } from '../onboarding/ProviderOnboarding'
+import { useProviderStore } from '../../stores/providerStore'
 import { useMobileViewport } from '../../hooks/useMobileViewport'
 import type { Tab } from '../../stores/tabStore'
 
@@ -28,6 +30,8 @@ function isChatTab(tab: Tab | undefined) {
 
 export function AppShell() {
   const fetchSettings = useSettingsStore((s) => s.fetchAll)
+  const onboardingCompleted = useSettingsStore((s) => s.onboardingCompleted)
+  const { providers, hasLoadedProviders } = useProviderStore()
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const setSidebarOpen = useUIStore((s) => s.setSidebarOpen)
@@ -62,6 +66,8 @@ export function AppShell() {
     isMobileShell && !effectiveSidebarOpen
       ? { 'aria-hidden': true, inert: '' }
       : {}
+
+  const showOnboarding = ready && !startupError && !h5StartupError && hasLoadedProviders && providers.length === 0 && !onboardingCompleted
 
   useEffect(() => {
     let cancelled = false
@@ -191,6 +197,10 @@ export function AppShell() {
         {t('app.launching')}
       </div>
     )
+  }
+
+  if (showOnboarding) {
+    return <ProviderOnboarding />
   }
 
   return (

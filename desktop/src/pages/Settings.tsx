@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react'
 import QRCode from 'qrcode'
 import { Copy, Eye, EyeOff, PowerOff, QrCode, RotateCw } from 'lucide-react'
+import { DreamCoderIcon } from '../components/shared/DreamCoderIcon'
 import { useSettingsStore, UI_ZOOM_DEFAULT, UI_ZOOM_MIN, UI_ZOOM_MAX, UI_ZOOM_STEP } from '../stores/settingsStore'
 import { useProviderStore } from '../stores/providerStore'
 import { useTranslation } from '../i18n'
@@ -154,15 +155,16 @@ export function Settings() {
             <TabButton icon="dns" label={t('settings.tab.providers')} active={activeTab === 'providers'} onClick={() => setActiveTab('providers')} />
             <TabButton icon="shield" label={t('settings.tab.permissions')} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />
             <TabButton icon="tune" label={t('settings.tab.general')} active={activeTab === 'general'} onClick={() => setActiveTab('general')} />
-            <TabButton icon="qr_code_2" label={t('settings.tab.h5Access')} active={activeTab === 'h5Access'} onClick={() => setActiveTab('h5Access')} />
-            <TabButton icon="chat" label={t('settings.tab.adapters')} active={activeTab === 'adapters'} onClick={() => setActiveTab('adapters')} />
+            {/* Phase 1: hidden tabs — H5 Access (Phase 4), Adapters (Phase 3), Computer Use (Phase 4), Agents, Skills, Memory, Plugins */}
+            {/* <TabButton icon="qr_code_2" label={t('settings.tab.h5Access')} active={activeTab === 'h5Access'} onClick={() => setActiveTab('h5Access')} /> */}
+            {/* <TabButton icon="chat" label={t('settings.tab.adapters')} active={activeTab === 'adapters'} onClick={() => setActiveTab('adapters')} /> */}
             <TabButton icon="terminal" label={t('settings.tab.terminal')} active={activeTab === 'terminal'} onClick={() => setActiveTab('terminal')} />
             <TabButton icon="dns" label={t('settings.tab.mcp')} active={activeTab === 'mcp'} onClick={() => setActiveTab('mcp')} />
-            <TabButton icon="smart_toy" label={t('settings.tab.agents')} active={activeTab === 'agents'} onClick={() => setActiveTab('agents')} />
-            <TabButton icon="auto_awesome" label={t('settings.tab.skills')} active={activeTab === 'skills'} onClick={() => setActiveTab('skills')} />
-            <TabButton icon="history_edu" label={t('settings.tab.memory')} active={activeTab === 'memory'} onClick={() => setActiveTab('memory')} />
-            <TabButton icon="extension" label={t('settings.tab.plugins')} active={activeTab === 'plugins'} onClick={() => setActiveTab('plugins')} />
-            <TabButton icon="mouse" label={t('settings.tab.computerUse')} active={activeTab === 'computerUse'} onClick={() => setActiveTab('computerUse')} />
+            {/* <TabButton icon="smart_toy" label={t('settings.tab.agents')} active={activeTab === 'agents'} onClick={() => setActiveTab('agents')} /> */}
+            {/* <TabButton icon="auto_awesome" label={t('settings.tab.skills')} active={activeTab === 'skills'} onClick={() => setActiveTab('skills')} /> */}
+            {/* <TabButton icon="history_edu" label={t('settings.tab.memory')} active={activeTab === 'memory'} onClick={() => setActiveTab('memory')} /> */}
+            {/* <TabButton icon="extension" label={t('settings.tab.plugins')} active={activeTab === 'plugins'} onClick={() => setActiveTab('plugins')} /> */}
+            {/* <TabButton icon="mouse" label={t('settings.tab.computerUse')} active={activeTab === 'computerUse'} onClick={() => setActiveTab('computerUse')} /> */}
             <TabButton icon="monitoring" label={t('settings.tab.activity')} active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} />
             <TabButton icon="monitor_heart" label={t('settings.tab.diagnostics')} active={activeTab === 'diagnostics'} onClick={() => setActiveTab('diagnostics')} />
           </div>
@@ -299,8 +301,8 @@ function ProviderSettings() {
         </Button>
       </div>
 
-      {/* Official provider — always visible at top */}
-      <div
+      {/* Phase 1: Official providers hidden — not needed for DreamField focus */}
+      {/* <div
         data-testid="claude-official-provider"
         className={`relative flex flex-col rounded-xl border transition-all mb-2 ${
           isClaudeOfficialActive
@@ -360,7 +362,7 @@ function ProviderSettings() {
             <ChatGPTOfficialLogin />
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Saved providers */}
       {isLoading && providers.length === 0 ? (
@@ -1609,6 +1611,8 @@ function GeneralSettings() {
     { value: 'white', label: t('settings.general.appearance.white') },
     { value: 'light', label: t('settings.general.appearance.light') },
     { value: 'dark', label: t('settings.general.appearance.dark') },
+    { value: 'dreamfield', label: t('settings.general.appearance.dreamfield') },
+    { value: 'amber', label: t('settings.general.appearance.amber') },
   ]
 
   const WEB_SEARCH_MODES: Array<{ value: WebSearchMode; label: string }> = [
@@ -1844,18 +1848,6 @@ function GeneralSettings() {
           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--color-text-tertiary)]">
             <span>{t('settings.general.uiZoomShortcutHint')}</span>
             <span className="inline-flex items-center gap-1">
-              <span className="font-medium text-[var(--color-text-secondary)]">{t('settings.general.uiZoomShortcutMac')}</span>
-              <kbd className="settings-zoom-kbd">⌘</kbd>
-              <kbd className="settings-zoom-kbd">+</kbd>
-              <span>/</span>
-              <kbd className="settings-zoom-kbd">⌘</kbd>
-              <kbd className="settings-zoom-kbd">-</kbd>
-              <span>/</span>
-              <kbd className="settings-zoom-kbd">⌘</kbd>
-              <kbd className="settings-zoom-kbd">0</kbd>
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <span className="font-medium text-[var(--color-text-secondary)]">{t('settings.general.uiZoomShortcutWindows')}</span>
               <kbd className="settings-zoom-kbd">Ctrl</kbd>
               <kbd className="settings-zoom-kbd">+</kbd>
               <span>/</span>
@@ -3478,15 +3470,11 @@ function PluginSettings() {
 
 // ─── About Settings ──────────────────────────────────────
 
-const GITHUB_REPO = 'https://github.com/NanmiCoder/dreamcoder'
+const GITHUB_REPO = 'https://github.com/GoDiao/dreamcoder'
 const GITHUB_ISSUES = `${GITHUB_REPO}/issues`
 const GITHUB_RELEASES = `${GITHUB_REPO}/releases`
-const AUTHOR_GITHUB = 'https://github.com/NanmiCoder'
-const SOCIAL_LINKS = [
-  { name: 'Bilibili', icon: '/icons/bilibili.svg', url: 'https://space.bilibili.com/434377496', label: '程序员阿江-Relakkes' },
-  { name: 'Douyin', icon: '/icons/douyin.svg', url: 'https://www.douyin.com/user/MS4wLjABAAAATJPY7LAlaa5X-c8uNdWkvz0jUGgpw4eeXIwu_8BhvqE', label: '程序员阿江-Relakkes' },
-  { name: 'Xiaohongshu', icon: '/icons/xiaohongshu.svg', url: 'https://www.xiaohongshu.com/user/profile/5f58bd990000000001003753', label: '程序员阿江-Relakkes' },
-] as const
+const AUTHOR_GITHUB = 'https://github.com/GoDiao'
+const SOCIAL_LINKS = [] as const
 
 function isValidHttpProxyUrl(value: string) {
   try {
@@ -3622,7 +3610,7 @@ function AboutSettings() {
   return (
     <div className="w-full min-w-0 max-w-lg mx-auto flex flex-col items-center py-6">
       {/* Logo + App Name + Version */}
-      <img src="/app-icon.png" alt="DreamCoder" className="w-20 h-20 mb-4" />
+      <DreamCoderIcon size={80} className="mb-4" />
       <h1 className="text-xl font-bold text-[var(--color-text-primary)]">DreamCoder</h1>
       {version && (
         <div className="mt-1 flex items-center gap-2 text-xs text-[var(--color-text-tertiary)]">
@@ -3645,191 +3633,17 @@ function AboutSettings() {
         >
           <img src="/icons/github.svg" alt="GitHub" className="w-5 h-5 opacity-70" />
           <div className="flex-1 text-left">
-            <div className="text-sm font-medium text-[var(--color-text-primary)]">NanmiCoder/dreamcoder</div>
+            <div className="text-sm font-medium text-[var(--color-text-primary)]">GoDiao/dreamcoder</div>
             <div className="text-xs text-[var(--color-text-tertiary)]">{t('settings.about.starHint')}</div>
           </div>
         </button>
       </div>
 
+      {/* TODO: Restore update checker after first public release */}
       <div className="mt-4 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-container-low)] p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="text-sm font-medium text-[var(--color-text-primary)]">{t('settings.about.updates')}</div>
-            <div className="text-xs text-[var(--color-text-tertiary)] mt-1">
-              {t('settings.about.updatesDesc')}
-            </div>
-          </div>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => void checkForUpdates()}
-            loading={updateStatus === 'checking'}
-          >
-            {t('update.checkNow')}
-          </Button>
-        </div>
-
-        <div className="mt-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-xs uppercase tracking-[0.14em] text-[var(--color-text-tertiary)]">
-                {t('settings.about.version')}
-              </div>
-              <div className="text-sm font-medium text-[var(--color-text-primary)] mt-1">
-                {version || t('update.currentVersionUnknown')}
-              </div>
-            </div>
-
-            {availableVersion && (
-              <div className="text-right">
-                <div className="text-xs uppercase tracking-[0.14em] text-[var(--color-text-tertiary)]">
-                  {t('update.availableLabel')}
-                </div>
-                <div className="text-sm font-medium text-[var(--color-text-primary)] mt-1">
-                  {availableVersion}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <p className={`mt-3 text-sm ${error ? 'text-[var(--color-error)]' : 'text-[var(--color-text-secondary)]'}`}>
-            {updateDescription}
-          </p>
-
-          {checkedAtText && (
-            <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">
-              {t('update.checkedAt', { time: checkedAtText })}
-            </p>
-          )}
-
-          <div className="mt-3 border-t border-[var(--color-border)]/60 pt-3">
-            <button
-              type="button"
-              onClick={() => setShowUpdateProxyAdvanced((value) => !value)}
-              className="flex w-full items-center justify-between gap-3 rounded-md text-left text-xs font-medium text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]"
-              aria-expanded={showUpdateProxyAdvanced}
-            >
-              <span>{t('update.proxyAdvanced')}</span>
-              <span className="material-symbols-outlined text-[18px]">
-                {showUpdateProxyAdvanced ? 'expand_less' : 'expand_more'}
-              </span>
-            </button>
-
-            {showUpdateProxyAdvanced && (
-              <div className="mt-3 space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  {updateProxyModes.map((mode) => (
-                    <button
-                      key={mode.value}
-                      type="button"
-                      onClick={() => {
-                        setUpdateProxyDraft((current) => ({ ...current, mode: mode.value }))
-                        setUpdateProxySaveError(null)
-                      }}
-                      aria-pressed={updateProxyDraft.mode === mode.value}
-                      className={`rounded-lg border px-3 py-2 text-left transition-colors ${
-                        updateProxyDraft.mode === mode.value
-                          ? 'border-[var(--color-brand)] bg-[var(--color-surface-selected)] text-[var(--color-text-primary)]'
-                          : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
-                      }`}
-                    >
-                      <div className="text-xs font-semibold">{mode.label}</div>
-                      <div className="mt-1 text-[11px] leading-4 text-[var(--color-text-tertiary)]">
-                        {mode.description}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {updateProxyDraft.mode === 'manual' && (
-                  <div>
-                    <Input
-                      id="update-proxy-url"
-                      label={t('update.proxyUrl')}
-                      value={updateProxyDraft.url}
-                      placeholder="http://127.0.0.1:7890"
-                      autoComplete="off"
-                      onChange={(event) => {
-                        setUpdateProxyDraft((current) => ({ ...current, url: event.target.value }))
-                        setUpdateProxySaveError(null)
-                      }}
-                    />
-                    <p className={`mt-1 text-[11px] leading-4 ${manualProxyError ? 'text-[var(--color-error)]' : 'text-[var(--color-text-tertiary)]'}`}>
-                      {manualProxyError ?? t('update.proxyUrlHint')}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between gap-3">
-                  <p className="min-w-0 text-[11px] leading-4 text-[var(--color-text-tertiary)]">
-                    {t('update.proxyScopeHint')}
-                  </p>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="min-w-[72px] px-4 whitespace-nowrap"
-                    disabled={!updateProxyDirty || !!manualProxyError || isSavingUpdateProxy}
-                    loading={isSavingUpdateProxy}
-                    onClick={() => void saveUpdateProxy()}
-                  >
-                    {t('update.proxySave')}
-                  </Button>
-                </div>
-
-                {updateProxySaveError && (
-                  <p className="text-[11px] leading-4 text-[var(--color-error)]">
-                    {updateProxySaveError}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {(updateStatus === 'downloading' || updateStatus === 'restarting') && (
-            <div className="mt-3">
-              <div className="h-1.5 bg-[var(--color-surface-container-low)] rounded-full overflow-hidden">
-                {hasKnownProgress || updateStatus === 'restarting' ? (
-                  <div
-                    className="h-full bg-[var(--color-text-accent)] transition-all duration-300"
-                    style={{ width: `${Math.min(progressPercent, 100)}%` }}
-                  />
-                ) : (
-                  <div className="h-full w-1/3 rounded-full bg-[var(--color-text-accent)]/75 animate-pulse" />
-                )}
-              </div>
-              {!hasKnownProgress && updateStatus === 'downloading' && downloadedBytes > 0 && (
-                <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">
-                  {downloadedText}
-                </p>
-              )}
-            </div>
-          )}
-
-          {releaseNotes && availableVersion && (
-            <div className="mt-3 rounded-lg bg-[var(--color-surface-container-low)] px-3 py-3">
-              <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--color-text-tertiary)]">
-                {t('update.releaseNotes')}
-              </div>
-              <MarkdownRenderer
-                content={releaseNotes}
-                variant="document"
-                className="mt-2 text-[13px] leading-6 text-[var(--color-text-secondary)] [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_p]:text-[13px] [&_p]:leading-6"
-              />
-            </div>
-          )}
-
-          {availableVersion && (
-            <div className="mt-3 flex justify-end">
-              <Button
-                size="sm"
-                onClick={() => void installUpdate()}
-                loading={updateStatus === 'downloading' || updateStatus === 'restarting'}
-                disabled={updateStatus === 'checking'}
-              >
-                {updateStatus === 'restarting' ? t('update.restarting') : t('update.now')}
-              </Button>
-            </div>
-          )}
+        <div className="text-sm font-medium text-[var(--color-text-primary)]">{t('settings.about.updates')}</div>
+        <div className="text-xs text-[var(--color-text-tertiary)] mt-1">
+          {t('settings.about.updatesNotAvailable')}
         </div>
       </div>
 
@@ -3844,12 +3658,13 @@ function AboutSettings() {
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer"
         >
           <img src="/icons/github.svg" alt="GitHub" className="w-4 h-4 opacity-60" />
-          <span className="text-sm text-[var(--color-text-primary)]">程序员阿江-Relakkes</span>
+          <span className="text-sm text-[var(--color-text-primary)]">GoDiao</span>
           <span className="text-xs text-[var(--color-text-tertiary)] ml-auto">GitHub</span>
         </button>
       </div>
 
       {/* Social Media */}
+      {SOCIAL_LINKS.length > 0 && (
       <div className="w-full mt-4">
         <h3 className="text-xs font-medium text-[var(--color-text-tertiary)] uppercase tracking-wider mb-3">{t('settings.about.socialMedia')}</h3>
         <div className="flex flex-col gap-0.5">
@@ -3866,6 +3681,7 @@ function AboutSettings() {
           ))}
         </div>
       </div>
+      )}
 
       <div className="mt-6 w-full">
         <button

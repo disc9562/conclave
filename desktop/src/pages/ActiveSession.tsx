@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Target } from 'lucide-react'
+import { DreamCoderIcon } from '../components/shared/DreamCoderIcon'
 import {
   SCHEDULED_TAB_ID,
   SETTINGS_TAB_ID,
@@ -413,7 +414,7 @@ export function ActiveSession() {
                   </>
                 ) : (
                   <>
-                    <img src="/app-icon.png" alt="DreamCoder" className="mb-6 h-24 w-24" />
+                    <DreamCoderIcon size={96} className="mb-6" />
                     <h1 className="mb-2 text-3xl font-extrabold tracking-tight text-[var(--color-text-primary)]" style={{ fontFamily: 'var(--font-headline)' }}>
                       {t('empty.title')}
                     </h1>

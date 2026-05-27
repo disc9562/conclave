@@ -7,8 +7,8 @@ describe('ProjectContextChip', () => {
   it('shows only the source project label and worktree marker for isolated worktrees', () => {
     render(
       <ProjectContextChip
-        workDir="/workspace/OpenCutSkill/.claude/worktrees/desktop-main-54a09f85"
-        sourceWorkDir="/workspace/OpenCutSkill"
+        workDir="/workspace/dreamcoder/.claude/worktrees/desktop-main-54a09f85"
+        sourceWorkDir="/workspace/dreamcoder"
         repoName={null}
         branch="main"
         isWorktree
@@ -16,7 +16,7 @@ describe('ProjectContextChip', () => {
       />,
     )
 
-    expect(screen.getByText('OpenCutSkill')).toBeInTheDocument()
+    expect(screen.getByText('dreamcoder')).toBeInTheDocument()
     expect(screen.getByText('worktree')).toBeInTheDocument()
     expect(screen.queryByText('main')).not.toBeInTheDocument()
     expect(screen.queryByText('desktop-main-54a09f85')).not.toBeInTheDocument()
@@ -25,13 +25,13 @@ describe('ProjectContextChip', () => {
   it('does not show worktree details for a normal checkout', () => {
     render(
       <ProjectContextChip
-        workDir="/workspace/OpenCutSkill"
+        workDir="/workspace/dreamcoder"
         repoName={null}
         branch="main"
       />,
     )
 
-    expect(screen.getByText('OpenCutSkill')).toBeInTheDocument()
+    expect(screen.getByText('dreamcoder')).toBeInTheDocument()
     expect(screen.queryByText('worktree')).not.toBeInTheDocument()
   })
 })
