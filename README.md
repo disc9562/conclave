@@ -22,66 +22,169 @@
 
 ---
 
+<div align="center">
+
 # DreamCoder
 
-<p align="center">
-  <strong>立志成为 DreamField 官方 Coding Agent</strong>
-</p>
+**面向国内开发者的 AI 编程桌面工作台**
 
-<p align="center">
-  中文原生 AI 编程桌面工作台 — 集成 AI 对话、代码生成/编辑、项目管理、多模型切换于一体，专为国内开发者打造。
-</p>
+[![Tauri 2](https://img.shields.io/badge/Tauri-2-blue)](https://v2.tauri.app/)
+[![React 18](https://img.shields.io/badge/React-18-61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-✓-fbf0df)](https://bun.sh/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Tauri-2-blue" alt="Tauri 2" />
-  <img src="https://img.shields.io/badge/React-19-61DAFB" alt="React 19" />
-  <img src="https://img.shields.io/badge/TypeScript-5-3178C6" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="License" />
-</p>
+</div>
 
 ---
 
-## 特性
+## DreamCoder 是什么
 
-- 🖥️ **桌面工作台** — 基于 Tauri 2 的 Windows 桌面应用
-- 💬 **多会话管理** — 标签页式会话，支持项目切换与 Worktree 隔离
-- 🔀 **代码 Diff 面板** — 实时查看 AI 编辑的代码变更
-- 🤖 **多模型支持** — DreamField 官方 Provider + DeepSeek、通义千问、Kimi 等
-- 🏠 **DreamField 深度集成** — 默认接入 DreamField 平台，开箱即用
-- 🔐 **权限审批流** — 危险操作集中审批，安全可控
-- 🇨🇳 **中文原生** — 全中文界面、文档与预设 Prompt
-- 🔌 **MCP 支持** — 接入任意 MCP 工具服务器
+DreamCoder 是一个开箱即用的 AI 编程助手桌面应用。它把 AI 对话、代码编辑、终端操作和项目管理整合到一个窗口里，让你用自然语言描述需求，AI 帮你写代码、改文件、跑命令。
+
+核心定位：
+
+- **中文原生体验** — 全中文界面和文档，默认接入 DreamField 平台，无需科学上网
+- **多模型自由切换** — 支持 Claude 系列模型，也支持 DeepSeek、通义千问、Kimi、MiniMax 等国产模型，以及 OpenRouter、Azure 等国际平台
+- **桌面级工作台** — 不是浏览器标签页，而是完整的桌面应用：内置终端、Diff 查看器、文件管理、会话管理
+
+## 功能亮点
+
+### AI 对话 & 代码编辑
+
+- 多会话标签页管理，每个会话绑定独立项目目录
+- 实时流式输出，支持 Markdown 渲染（代码高亮、Mermaid 图表、KaTeX 公式）
+- 代码 Diff 面板，直观查看 AI 对文件的每一步修改
+- 工具调用可视化，AI 读写文件、执行命令的过程全程透明
+
+### 多模型 Provider 系统
+
+- 内置 Claude Opus / Sonnet / Haiku 官方模型
+- 支持添加自定义 Provider：填入 API 地址和密钥即可接入任意 OpenAI 兼容接口
+- 通过 `.env` 或 LiteLLM 代理接入 DeepSeek、MiniMax、OpenRouter、Azure OpenAI 等
+- 一键测试连接状态和延迟
+
+### 项目工作台
+
+- 内置 PTY 终端，支持 PowerShell / bash / zsh / 自定义 Shell
+- 文件系统浏览和在线编辑
+- MCP (Model Context Protocol) 工具服务器支持，扩展 AI 的能力边界
+- 插件系统，支持加载和管理第三方技能插件
+
+### 安全 & 权限
+
+- 危险操作（文件删除、命令执行等）集中审批流，用户逐条确认
+- 多级权限模式：自动批准 / 逐条确认 / 计划模式
+- API 密钥本地存储，不上传任何凭据
+
+### 桌面体验
+
+- Windows / macOS 双平台支持
+- 系统托盘常驻，关闭窗口不退出
+- 窗口位置和大小自动记忆
+- 便携模式（Portable），配置文件随 exe 移动
+- 中英双语界面切换
+
+## 技术架构
+
+```
+┌─────────────────────────────────────────────┐
+│                 Tauri 2 桌面窗口              │
+│  ┌──────────┐  ┌──────────┐  ┌───────────┐  │
+│  │  React   │  │  Zustand │  │  xterm.js │  │
+│  │  UI 层   │  │  状态管理 │  │   终端    │  │
+│  └────┬─────┘  └────┬─────┘  └─────┬─────┘  │
+│       │    HTTP / WebSocket     PTY IPC      │
+│  ┌────▼──────────────────────────────▼─────┐ │
+│  │          Rust (Tauri Core)              │ │
+│  │   窗口管理 · 侧车进程 · 系统托盘        │ │
+│  └────┬────────────────────────────────────┘ │
+│       │ Sidecar IPC                          │
+│  ┌────▼────────────────────────────────────┐ │
+│  │      Bun Server (TypeScript)            │ │
+│  │   AI 代理 · 会话管理 · 文件操作 · MCP   │ │
+│  └─────────────────────────────────────────┘ │
+└─────────────────────────────────────────────┘
+```
+
+| 层级 | 技术栈 |
+|------|--------|
+| 桌面框架 | [Tauri 2](https://v2.tauri.app/) — Rust 核心，原生性能 |
+| 前端 UI | React 18 + Vite 8 + TailwindCSS 4 |
+| 状态管理 | Zustand |
+| 终端 | portable-pty (Rust) + xterm.js |
+| 后端运行时 | Bun |
+| 语言 | TypeScript + Rust |
+| 协议 | MCP, LSP, WebSocket |
 
 ## 快速开始
 
+### 环境要求
+
+- [Bun](https://bun.sh/) >= 1.0
+- [Rust](https://www.rust-lang.org/tools/install) (桌面端编译)
+- Node.js >= 18 (部分依赖需要)
+
+### 安装 & 运行
+
 ```bash
+# 克隆仓库
+git clone https://github.com/GoDiao/dreamcoder.git
+cd dreamcoder
+
 # 安装依赖
 bun install
 
-# 启动桌面端开发
+# 启动桌面端开发模式
 cd desktop && bun run dev
-
-# 或启动后端服务
-SERVER_PORT=3456 bun run src/server/index.ts
 ```
 
-## 技术栈
+首次启动时，应用会引导你配置 AI Provider（也可以跳过，之后在设置中配置）。
 
-| 类别 | 技术 |
-|------|------|
-| 桌面框架 | Tauri 2 |
-| 前端 UI | React 19 + Vite + TailwindCSS 4 |
-| 状态管理 | Zustand |
-| 本地运行时 | Bun |
-| 语言 | TypeScript |
-| 协议 | MCP, LSP |
+### 配置 AI 模型
+
+复制 `.env.example` 为 `.env`，根据注释选择一个 Provider 配置：
+
+```bash
+# 示例：接入 MiniMax
+ANTHROPIC_AUTH_TOKEN=your_api_key
+ANTHROPIC_BASE_URL=https://api.minimaxi.com/anthropic
+ANTHROPIC_MODEL=MiniMax-M2.7
+```
+
+也可以在桌面端的 **设置 → Provider** 中可视化配置。
+
+## 项目结构
+
+```
+dreamcoder/
+├── desktop/              # Tauri 桌面应用
+│   ├── src/              # React 前端
+│   │   ├── components/   # UI 组件 (聊天、设置、终端...)
+│   │   ├── stores/       # Zustand 状态管理
+│   │   ├── pages/        # 页面级组件
+│   │   ├── api/          # 后端 API 客户端
+│   │   └── i18n/         # 中英文翻译
+│   └── src-tauri/        # Rust 后端 (窗口、终端、侧车管理)
+│       ├── src/
+│       └── icons/
+├── src/                  # 核心运行时
+│   ├── server/           # Bun HTTP/WS 服务器
+│   │   ├── api/          # REST API 路由
+│   │   ├── services/     # 业务逻辑 (会话、MCP、文件系统...)
+│   │   └── proxy/        # 模型代理 (Anthropic ↔ OpenAI 格式转换)
+│   ├── constants/        # 配置和常量
+│   └── hooks/            # CLI/终端 hooks
+├── adapters/             # IM 适配器 (飞书/Telegram/微信/钉钉)
+└── runtime/              # 运行时工具
+```
 
 ## Roadmap
 
-- ✅ Phase 1: Windows 桌面端 + 后端服务 + 多模型支持
-- 🔜 Phase 2: CLI 终端 UI (macOS + Windows)
-- 🔜 Phase 3: IM 适配器 (飞书/Telegram/微信/钉钉)
-- 🔜 Phase 4: Computer Use / H5 远程 / 定时任务 / Teams
+- [x] **Phase 1** — Windows 桌面端 + 多模型支持 + 项目工作台
+- [ ] **Phase 2** — CLI 终端 UI (macOS + Windows)
+- [ ] **Phase 3** — IM 适配器上线 (飞书 / 钉钉 / Telegram / 微信)
+- [ ] **Phase 4** — Computer Use / H5 远程访问 / 定时任务
 
 ## 贡献
 
@@ -89,4 +192,4 @@ SERVER_PORT=3456 bun run src/server/index.ts
 
 ## License
 
-MIT
+[MIT](./LICENSE) &copy; 2024-2026 GoDiao & DreamCoder Contributors
