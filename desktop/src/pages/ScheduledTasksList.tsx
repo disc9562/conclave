@@ -310,7 +310,7 @@ export function ScheduledTasksList() {
                   <span className="material-symbols-outlined text-[var(--color-text-tertiary)]">history_toggle_off</span>
                 </div>
                 <h3 className="font-[Manrope,sans-serif] font-bold text-[var(--color-text-primary)] text-base">{t('scheduledPage.endOfList')}</h3>
-                <p className="text-sm text-[var(--color-text-tertiary)] max-w-xs mx-auto mt-1">{t('scheduledPage.pausedTasks')}</p>
+                <p className="text-sm text-[var(--color-text-tertiary)] max-w-xs mx-auto mt-1">{t('scheduledPage.pausedTasks', { count: 0 })}</p>
               </div>
             </div>
 

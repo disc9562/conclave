@@ -749,6 +749,12 @@ export const zh: Record<TranslationKey, string> = {
   'settings.about.updatesDesc': '检查 GitHub Releases，下载安装包，并在安装后自动重启。',
   'settings.about.updatesNotAvailable': '首个公开版本尚未发布，更新检查暂未开放。',
 
+  // Settings > Notifications
+  'notifications.agentCompleted.title': 'DreamCoder 已完成回复',
+  'notifications.permissionPrompt.title': 'DreamCoder 需要你的确认',
+  'notifications.permissionPrompt.toolBody': '{toolName} 请求执行，正在等待允许。',
+  'notifications.permissionPrompt.computerUseBody': 'Computer Use 正在等待允许。',
+
   // Settings > Computer Use
   'settings.tab.computerUse': 'Computer Use',
   'settings.computerUse.title': 'Computer Use',
@@ -1485,7 +1491,7 @@ export const zh: Record<TranslationKey, string> = {
   'scheduledPage.colNextExecution': '下次执行',
   'scheduledPage.colActions': '操作',
   'scheduledPage.endOfList': '任务列表结束',
-  'scheduledPage.pausedTasks': '另有 9 个任务当前已暂停或因维护而禁用。',
+  'scheduledPage.pausedTasks': '另有 {{count}} 个任务当前已暂停或因维护而禁用。',
   'scheduledPage.recentLogs': '最近输出日志',
   'scheduledPage.viewArtifacts': '查看完整产物',
   'scheduledPage.resourceAllocation': '资源分配',

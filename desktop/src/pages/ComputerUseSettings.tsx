@@ -35,14 +35,7 @@ async function openSystemSettings(pane: 'Privacy_ScreenCapture' | 'Privacy_Acces
   await computerUseApi.openSettings(pane)
 }
 
-async function openExternalUrl(url: string) {
-  try {
-    const { open } = await import('@tauri-apps/plugin-shell')
-    await open(url)
-  } catch {
-    window.open(url, '_blank', 'noopener,noreferrer')
-  }
-}
+import { openExternalUrl } from '../lib/externalUrl'
 
 export function ComputerUseSettings() {
   const t = useTranslation()

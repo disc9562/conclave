@@ -747,6 +747,12 @@ export const en = {
   'settings.about.updatesDesc': 'Check GitHub Releases, download the installer, and relaunch after install.',
   'settings.about.updatesNotAvailable': 'The first public release has not been published yet. Update checking is disabled.',
 
+  // Settings > Notifications
+  'notifications.agentCompleted.title': 'DreamCoder has finished responding',
+  'notifications.permissionPrompt.title': 'DreamCoder needs your confirmation',
+  'notifications.permissionPrompt.toolBody': '{toolName} is requesting execution, waiting for permission.',
+  'notifications.permissionPrompt.computerUseBody': 'Computer Use is waiting for permission.',
+
   // Settings > Computer Use
   'settings.tab.computerUse': 'Computer Use',
   'settings.computerUse.title': 'Computer Use',
@@ -1483,7 +1489,7 @@ export const en = {
   'scheduledPage.colNextExecution': 'Next Execution',
   'scheduledPage.colActions': 'Actions',
   'scheduledPage.endOfList': 'End of scheduled list',
-  'scheduledPage.pausedTasks': '9 other tasks are currently paused or disabled for maintenance.',
+  'scheduledPage.pausedTasks': '{{count}} other tasks are currently paused or disabled for maintenance.',
   'scheduledPage.recentLogs': 'Recent Output Logs',
   'scheduledPage.viewArtifacts': 'View Full Artifacts',
   'scheduledPage.resourceAllocation': 'Resource Allocation',
