@@ -116,10 +116,10 @@ function TabButton({ icon, label, active, onClick }: { icon: string; label: stri
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors ${
+      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors border-l-2 ${
         active
-          ? 'bg-[var(--color-surface-selected)] text-[var(--color-text-primary)] font-medium'
-          : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'
+          ? 'bg-[var(--color-surface-selected)] text-[var(--color-text-primary)] font-medium border-l-[var(--color-brand)]'
+          : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] border-l-transparent'
       }`}
     >
       <span className="material-symbols-outlined text-[18px]">{icon}</span>
