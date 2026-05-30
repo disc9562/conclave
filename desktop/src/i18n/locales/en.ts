@@ -847,6 +847,7 @@ export const en = {
   'settings.general.appearance.dark': 'Dark',
   'settings.general.appearance.dreamfield': 'DreamField Emerald',
   'settings.general.appearance.amber': 'Autumn Amber',
+  'settings.general.appearance.midnight': 'Midnight',
   'settings.general.appearance.white': 'Pure White',
   'settings.general.languageTitle': 'Language',
   'settings.general.languageDescription': 'Choose the display language for the application.',

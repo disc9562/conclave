@@ -60,6 +60,7 @@ export function ComputerUseSettings() {
   const [pythonPathSaving, setPythonPathSaving] = useState(false)
   const [pythonPathMessage, setPythonPathMessage] = useState<string | null>(null)
   const configMutationSeqRef = useRef(0)
+  const modeLocallySetRef = useRef(false)
 
   const fetchStatus = useCallback(async () => {
     setCheckState('loading')
@@ -78,7 +79,11 @@ export function ComputerUseSettings() {
   ) => {
     if (requestSeq !== configMutationSeqRef.current) return
     setComputerUseEnabled(configResult.enabled)
-    setComputerUseMode(configResult.mode ?? 'vision')
+    // Don't overwrite mode if user just changed it locally — the API response
+    // might be from a request that was in-flight before the mode change.
+    if (!modeLocallySetRef.current) {
+      setComputerUseMode(configResult.mode ?? 'vision')
+    }
     setAuthorizedApps(configResult.authorizedApps)
     setAuthorizedBundleIds(new Set(configResult.authorizedApps.map(a => a.bundleId)))
     setClipboardAccess(configResult.grantFlags.clipboardRead)
@@ -157,8 +162,9 @@ export function ComputerUseSettings() {
     setAuthorizedBundleIds(newSet)
     setAuthorizedApps(newAuthorized)
 
-    // Auto-save
+    // Auto-save (include mode to prevent race with concurrent setMode)
     computerUseApi.setAuthorizedApps({
+      mode: computerUseMode,
       authorizedApps: newAuthorized,
       grantFlags: { clipboardRead: clipboardAccess, clipboardWrite: clipboardAccess, systemKeyCombos: systemKeys },
     }).then(() => {
@@ -173,6 +179,7 @@ export function ComputerUseSettings() {
     else setSystemKeys(value)
 
     computerUseApi.setAuthorizedApps({
+      mode: computerUseMode,
       authorizedApps,
       grantFlags: {
         clipboardRead: flag === 'clipboard' ? value : clipboardAccess,
@@ -193,6 +200,7 @@ export function ComputerUseSettings() {
 
   const setMode = (mode: ComputerUseMode) => {
     configMutationSeqRef.current += 1
+    modeLocallySetRef.current = true
     setComputerUseMode(mode)
     computerUseApi.setAuthorizedApps({ mode }).then(() => {
       setAppsSaved(true)

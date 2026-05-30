@@ -849,6 +849,7 @@ export const zh: Record<TranslationKey, string> = {
   'settings.general.appearance.dark': '暗色',
   'settings.general.appearance.dreamfield': 'DreamField 翡翠',
   'settings.general.appearance.amber': '秋日琥珀',
+  'settings.general.appearance.midnight': '午夜',
   'settings.general.appearance.white': '纯白',
   'settings.general.languageTitle': '语言',
   'settings.general.languageDescription': '选择应用程序的显示语言。',
