@@ -20,11 +20,6 @@ import {
   isOpenAIOfficialProviderId,
 } from './openaiOfficialProvider.js'
 
-/** Strip [1m] extended-context suffix — not understood by third-party API providers. */
-function strip1mSuffix(model: string): string {
-  return model.replace(/\[1m\]$/i, '').trim()
-}
-
 export const MANAGED_PROVIDER_ENV_KEYS = [
   'ANTHROPIC_BASE_URL',
   'ANTHROPIC_API_KEY',
@@ -226,10 +221,10 @@ export function buildProviderManagedEnv(
     }),
     ANTHROPIC_BASE_URL: baseUrl,
     ...buildProviderAuthEnv(provider, presetDefaultEnv, needsProxy),
-    ANTHROPIC_MODEL: strip1mSuffix(models.main),
-    ANTHROPIC_DEFAULT_HAIKU_MODEL: strip1mSuffix(models.haiku),
-    ANTHROPIC_DEFAULT_SONNET_MODEL: strip1mSuffix(models.sonnet),
-    ANTHROPIC_DEFAULT_OPUS_MODEL: strip1mSuffix(models.opus),
+    ANTHROPIC_MODEL: models.main,
+    ANTHROPIC_DEFAULT_HAIKU_MODEL: models.haiku,
+    ANTHROPIC_DEFAULT_SONNET_MODEL: models.sonnet,
+    ANTHROPIC_DEFAULT_OPUS_MODEL: models.opus,
     ...attributionHeaderEnvForModel(models.main),
   }
 }
