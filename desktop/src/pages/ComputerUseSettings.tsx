@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { computerUseApi, type ComputerUseStatus, type SetupResult, type InstalledApp, type AuthorizedApp } from '../api/computerUse'
+import { computerUseApi, type ComputerUseStatus, type SetupResult, type InstalledApp, type AuthorizedApp, type ComputerUseMode } from '../api/computerUse'
 import { useTranslation } from '../i18n'
 
 type CheckState = 'loading' | 'ready' | 'error'
@@ -52,6 +52,7 @@ export function ComputerUseSettings() {
   const [appsSaved, setAppsSaved] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [computerUseEnabled, setComputerUseEnabled] = useState(true)
+  const [computerUseMode, setComputerUseMode] = useState<ComputerUseMode>('vision')
   const [clipboardAccess, setClipboardAccess] = useState(true)
   const [systemKeys, setSystemKeys] = useState(true)
   const [pythonPathDraft, setPythonPathDraft] = useState('')
@@ -77,6 +78,7 @@ export function ComputerUseSettings() {
   ) => {
     if (requestSeq !== configMutationSeqRef.current) return
     setComputerUseEnabled(configResult.enabled)
+    setComputerUseMode(configResult.mode ?? 'vision')
     setAuthorizedApps(configResult.authorizedApps)
     setAuthorizedBundleIds(new Set(configResult.authorizedApps.map(a => a.bundleId)))
     setClipboardAccess(configResult.grantFlags.clipboardRead)
@@ -189,6 +191,15 @@ export function ComputerUseSettings() {
     })
   }
 
+  const setMode = (mode: ComputerUseMode) => {
+    configMutationSeqRef.current += 1
+    setComputerUseMode(mode)
+    computerUseApi.setAuthorizedApps({ mode }).then(() => {
+      setAppsSaved(true)
+      setTimeout(() => setAppsSaved(false), 1500)
+    })
+  }
+
   const savePythonPath = async (value = pythonPathDraft) => {
     configMutationSeqRef.current += 1
     const normalized = value.trim()
@@ -289,6 +300,60 @@ export function ComputerUseSettings() {
       {!computerUseEnabled && (
         <div className="px-4 py-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-sm text-yellow-700">
           {t('settings.computerUse.disabledHint')}
+        </div>
+      )}
+
+      {/* Mode selector — Vision vs UIA Tree */}
+      {computerUseEnabled && (
+        <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-container-low)] p-4">
+          <div>
+            <label className="block text-sm font-medium text-[var(--color-text-primary)]">
+              {t('settings.computerUse.modeLabel', { defaultValue: '感知模式' })}
+            </label>
+            <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
+              {t('settings.computerUse.modeDescription', { defaultValue: 'AI 如何"看到"你的屏幕。两种模式使用不同的技术原理，适用于不同类型的模型。' })}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setMode('vision')}
+              className={`text-left px-4 py-3 rounded-lg border transition-colors ${
+                computerUseMode === 'vision'
+                  ? 'bg-[var(--color-brand)]/10 border-[var(--color-brand)]'
+                  : 'border-[var(--color-border)] hover:bg-[var(--color-surface-hover)]'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">photo_camera</span>
+                <span className="text-sm font-semibold text-[var(--color-text-primary)]">Vision</span>
+              </div>
+              <p className="text-xs text-[var(--color-text-secondary)] mt-2 leading-relaxed">
+                {t('settings.computerUse.modeVisionDesc', { defaultValue: '截取屏幕截图，由多模态模型"看图"理解界面。点击坐标基于截图位置。' })}
+              </p>
+              <p className="text-[11px] text-[var(--color-text-tertiary)] mt-2">
+                {t('settings.computerUse.modeVisionRequirement', { defaultValue: '需要多模态模型（如 GPT-4o、Claude Sonnet）' })}
+              </p>
+            </button>
+            <button
+              onClick={() => setMode('uia_tree')}
+              className={`text-left px-4 py-3 rounded-lg border transition-colors ${
+                computerUseMode === 'uia_tree'
+                  ? 'bg-[var(--color-brand)]/10 border-[var(--color-brand)]'
+                  : 'border-[var(--color-border)] hover:bg-[var(--color-surface-hover)]'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">account_tree</span>
+                <span className="text-sm font-semibold text-[var(--color-text-primary)]">UIA Tree</span>
+              </div>
+              <p className="text-xs text-[var(--color-text-secondary)] mt-2 leading-relaxed">
+                {t('settings.computerUse.modeUiaDesc', { defaultValue: '读取 Windows 无障碍树，将界面元素序列化为文本。模型按元素 ID 操作，无需"看图"。' })}
+              </p>
+              <p className="text-[11px] text-[var(--color-text-tertiary)] mt-2">
+                {t('settings.computerUse.modeUiaRequirement', { defaultValue: '纯文本模型即可（如 DeepSeek、GPT-4o-mini）' })}
+              </p>
+            </button>
+          </div>
         </div>
       )}
 

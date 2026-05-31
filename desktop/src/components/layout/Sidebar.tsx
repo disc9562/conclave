@@ -688,8 +688,8 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
         >
           {t('sidebar.newSession')}
         </NavItem>
-        {/* Phase 1: Scheduled Tasks hidden (Phase 4) */}
-        {/* !isMobile && (
+        {/* Scheduled Tasks */}
+        {!isMobile && (
           <NavItem
             active={activeTabId === SCHEDULED_TAB_ID}
             collapsed={!expanded}
@@ -703,7 +703,7 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
           >
             {t('sidebar.scheduled')}
           </NavItem>
-        ) */}
+        )}
       </div>
 
       {expanded ? (
