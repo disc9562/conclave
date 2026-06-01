@@ -1,0 +1,62 @@
+/* index.module.css */
+
+.hero {
+  padding: 6rem 0 4rem;
+  text-align: center;
+  background: linear-gradient(180deg, var(--dc-bg-primary) 0%, var(--dc-bg-secondary) 100%);
+}
+
+.heroInner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.heroTitle {
+  font-size: 4.5rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  background: linear-gradient(135deg, var(--dc-text-primary) 0%, var(--dc-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+}
+
+.heroSubtitle {
+  font-size: 1.35rem;
+  color: var(--dc-text-secondary);
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.section {
+  padding: 5rem 0;
+  border-bottom: 1px solid var(--dc-border);
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+/* Dark mode specific overrides */
+[data-theme='dark'] .hero {
+  background: radial-gradient(circle at center top, #1e1e24 0%, #18181c 100%);
+}
+
+@media screen and (max-width: 996px) {
+  .heroTitle {
+    font-size: 3rem;
+  }
+  .heroSubtitle {
+    font-size: 1.1rem;
+  }
+}
