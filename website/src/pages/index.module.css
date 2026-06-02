@@ -447,6 +447,18 @@
   text-decoration: none;
 }
 
+/* ===== ARCHITECTURE SECTION ===== */
+.architectureSection {
+  padding: 96px 0;
+  background: var(--color-surface-soft);
+}
+
+/* ===== DEMO SECTION ===== */
+.demoSection {
+  padding: 96px 0;
+  background: var(--color-canvas);
+}
+
 /* ===== CTA SECTION ===== */
 .ctaSection {
   padding: 80px 0;

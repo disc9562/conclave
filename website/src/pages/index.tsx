@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from '@docusaurus/Link';
 import styles from './index.module.css';
+import ArchitectureGraph from '../components/ArchitectureGraph';
+import InteractiveDemo from '../components/InteractiveDemo';
+import PerfDashboard from '../components/PerfDashboard';
 
 const features = [
   {
@@ -31,42 +34,11 @@ const features = [
   {
     icon: '⚡',
     title: '极致性能',
-    description: '14 项深度优化，会话元数据缓存实现 24.8 倍性能提升。',
+    description: '14 项深度优化，会话元数据缓存���现 24.8 倍性能提升。',
   },
 ];
 
-const benchmarks = [
-  { metric: '元数据扫描', before: '2.02s', after: '81ms', improvement: '24.8x' },
-  { metric: 'Elapsed Timer', before: '10.91ms', after: '6.74ms', improvement: '1.6x' },
-  { metric: 'Markdown 渲染', before: '阻塞主线程', after: '异步不卡顿', improvement: '∞' },
-];
-
-const terminalLines = [
-  { text: '$ dreamcoder init my-project', className: styles.terminalPrompt },
-  { text: '✓ Initializing DreamCoder...', className: styles.terminalSuccess },
-  { text: '✓ Loading Claude 3.5 Sonnet...', className: styles.terminalSuccess },
-  { text: '✓ Connected to DeepSeek V3 (12ms)', className: styles.terminalSuccess },
-  { text: '', className: '' },
-  { text: '🤖 What would you like to build?', className: styles.terminalAi },
-  { text: '> Build me a REST API with Express', className: styles.terminalUser },
-  { text: '', className: '' },
-  { text: '⚡ Analyzing project structure...', className: styles.terminalSuccess },
-  { text: '✓ Generated: src/routes/users.js', className: styles.terminalSuccess },
-  { text: '✓ Generated: src/models/user.js', className: styles.terminalSuccess },
-];
-
 export default function Home(): JSX.Element {
-  const [typedLines, setTypedLines] = useState<number>(0);
-
-  useEffect(() => {
-    if (typedLines < terminalLines.length) {
-      const timer = setTimeout(() => {
-        setTypedLines(t => t + 1);
-      }, typedLines === 0 ? 800 : 120);
-      return () => clearTimeout(timer);
-    }
-  }, [typedLines]);
-
   return (
     <main className={styles.main}>
       {/* Hero Section */}
@@ -80,12 +52,12 @@ export default function Home(): JSX.Element {
 
             <h1 className={styles.heroTitle}>
               <span className={styles.titleLine1}>DreamCoder</span>
-              <span className={styles.titleLine2}>Claude Code 的桌面版</span>
+              <span className={styles.titleLine2}>Claude Desktop 开源版</span>
             </h1>
 
             <p className={styles.heroSubtitle}>
-              把强大的 AI 编程能力，装进漂亮的桌面应用。
-              面向国内开发者的原生体验，无需科学上网。
+              把 Claude Code 强大的核心引擎，封装进现代原生桌面应用。
+              面向国内开发者的 AI 编程工作台，无需科学上网。
             </p>
 
             <div className={styles.heroCta}>
@@ -122,17 +94,32 @@ export default function Home(): JSX.Element {
                   <span className={styles.dotYellow}></span>
                   <span className={styles.dotGreen}></span>
                 </div>
-                <span className={styles.terminalTitle}>DreamCoder — powered by Claude</span>
+                <span className={styles.terminalTitle}>DreamCoder — Claude Desktop 开源版</span>
               </div>
               <div className={styles.terminalBody}>
-                {terminalLines.slice(0, typedLines).map((line, idx) => (
-                  <div key={idx} className={`${styles.terminalLine} ${line.className}`}>
-                    {line.text}
-                  </div>
-                ))}
+                <div className={`${styles.terminalLine} ${styles.terminalPrompt}`}>$ dreamcoder init my-project</div>
+                <div className={`${styles.terminalLine} ${styles.terminalSuccess}`}>✓ Initializing DreamCoder...</div>
+                <div className={`${styles.terminalLine} ${styles.terminalSuccess}`}>✓ Loading Claude 3.5 Sonnet...</div>
+                <div className={`${styles.terminalLine} ${styles.terminalSuccess}`}>✓ Connected to DeepSeek V3 (12ms)</div>
+                <div className={`${styles.terminalLine}`}></div>
+                <div className={`${styles.terminalLine} ${styles.terminalAi}`}>🤖 有什么可以帮你的？</div>
+                <div className={`${styles.terminalLine} ${styles.terminalUser}`}>> 帮我写一个 REST API</div>
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Architecture Section */}
+      <section className={styles.architectureSection}>
+        <div className="container">
+          <h2 className={styles.sectionTitle}>
+            技术<span className={styles.highlight}>架构</span>
+          </h2>
+          <p className={styles.sectionSubtitle}>
+            四层协同：UI 层 → Rust 核心 → Bun 运行时 → 云端模型
+          </p>
+          <ArchitectureGraph />
         </div>
       </section>
 
@@ -181,6 +168,19 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
+      {/* Interactive Demo Section */}
+      <section className={styles.demoSection}>
+        <div className="container">
+          <h2 className={styles.sectionTitle}>
+            交互<span className={styles.highlight}>演示</span>
+          </h2>
+          <p className={styles.sectionSubtitle}>
+            切换模型、实时响应、安全审批 — 体验完整的工作流
+          </p>
+          <InteractiveDemo />
+        </div>
+      </section>
+
       {/* Features Grid - Cream Cards */}
       <section className={styles.featuresSection}>
         <div className="container">
@@ -197,31 +197,14 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
-      {/* Benchmark Section - Dark Surface */}
+      {/* Performance Section - Dark Surface */}
       <section className={styles.benchmarkSection}>
         <div className="container">
           <h2 className={styles.sectionTitle}>极致性能优化</h2>
           <p className={styles.sectionSubtitle}>
             14 项深度优化，让大项目也能丝滑运行
           </p>
-
-          <div className={styles.benchmarkGrid}>
-            {benchmarks.map((item, idx) => (
-              <div key={idx} className={styles.benchmarkCard}>
-                <div className={styles.benchmarkMetric}>{item.metric}</div>
-                <div className={styles.benchmarkComparison}>
-                  <span className={styles.benchmarkBefore}>{item.before}</span>
-                  <span className={styles.benchmarkArrow}>→</span>
-                  <span className={styles.benchmarkAfter}>{item.after}</span>
-                </div>
-                <div className={styles.benchmarkImprovement}>{item.improvement} 提升</div>
-              </div>
-            ))}
-          </div>
-
-          <p className={styles.benchmarkNote}>
-            * 更多优化细节见 <Link to="/docs/security">性能优化专题</Link>
-          </p>
+          <PerfDashboard />
         </div>
       </section>
 
