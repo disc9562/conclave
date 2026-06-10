@@ -46,7 +46,7 @@ Claude Code 非常强大，但它是一个纯命令行工具 (CLI-only)。
 
 > “我想要 Claude Code 的能力，但我需要一个 GUI 来管理会话、切换模型、处理文件。”
 
-*   **非叉子 (Not a Fork)**：DreamCoder 复用了 Claude Code 的核心逻辑，或��使用兼容的运行时。它只是给命令行体验穿上了一件漂亮的外衣。
+*   **非叉子 (Not a Fork)**：DreamCoder 复用了 Claude Code 的核心逻辑，或使用兼容的运行时。它只是给命令行体验穿上了一件漂亮的外衣。
 *   **隐私优先**：你的 API Key 和数据完全保存在本地。不依赖任何云端服务。
 *   **全模型支持**：无缝切换 Anthropic, OpenAI, DeepSeek, 阿里通义、MiniMax, Azure, Google Vertex 等。
 
@@ -59,15 +59,30 @@ Claude Code 非常强大，但它是一个纯命令行工具 (CLI-only)。
 *   **集成终端**：内置 PTY (PowerShell/Bash/Zsh)，集成 xterm.js。
 *   **可视化设置**：告别手动编辑 JSON 文件，在 UI 上直接管理 Provider 和 API Key。
 
+![主界面](./assets/main.png)
+
 ### 2. 完美对接 Claude Code
 *   **Computer Use 模式**：原生支持视觉模型控制电脑（截图模式），以及全新的 **UIA Tree 模式**（文本辅助访问模式，更快、更低成本）。
 *   **工具调用可视化**：AI 读写文件、执行终端命令的过程全程透明可见。
 *   **MCP 支持**：通过 Model Context Protocol 扩展 AI 能力。
 
+![Computer Use 设置](./assets/setting_computeruse.png)
+
 ### 3. 高级 Provider 系统
 *   **一键切换**：点击即可在不同模型供应商之间切换。
 *   **支持列表**：Anthropic (Claude), OpenAI, DeepSeek, Moonshot (Kimi), MiniMax, Azure OpenAI, Google Vertex, AWS Bedrock。
 *   **可视化测试**：在设置界面直接测试连接状态和延迟。
+
+![Provider 设置](./assets/setting_provider.png)
+
+---
+
+### 4. MCP 扩展
+*   **MCP 原生支持**：Model Context Protocol 全面支持。
+*   **可视化配置**：告别 JSON 配置，图形界面管理 MCP 服务器。
+*   **开箱即用**：内置常用 MCP 工具集成。
+
+![MCP 技能设置](./assets/setting_skills.png)
 
 ---
 
@@ -118,7 +133,7 @@ cd desktop && bun run dev
 
 1.  打开 DreamCoder，进入 **设置 -> Provider (模型供应商)**。
 2.  添加你的 API Key (例如：Anthropic, OpenAI, 或 DeepSeek)。
-3.  选择默认��型，即可开始编程。
+3.  选择默认模型，即可开始编程。
 
 ---
 

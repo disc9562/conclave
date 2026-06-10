@@ -1,0 +1,154 @@
+.dashboardWrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.benchmarkCard {
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.benchmarkHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.benchmarkName {
+  color: var(--color-body-strong);
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.improvementBadge {
+  background: rgba(184, 115, 81, 0.12);
+  color: var(--color-primary);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.improvementBadgeTeal {
+  background: rgba(74, 158, 140, 0.12);
+  color: var(--color-accent-teal);
+}
+
+.improvementBadgeAmber {
+  background: rgba(212, 148, 74, 0.12);
+  color: var(--color-accent-amber);
+}
+
+.barContainer {
+  margin-bottom: 16px;
+}
+
+.barLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  margin-bottom: 6px;
+}
+
+.barLabelBefore {
+  color: var(--color-muted-soft);
+}
+
+.barLabelAfter {
+  color: var(--color-accent-teal);
+  font-weight: 600;
+}
+
+.barTrack {
+  height: 24px;
+  background: var(--color-surface-soft);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.barFillBefore {
+  height: 100%;
+  background: var(--color-muted-soft);
+  border-radius: 6px;
+  transition: width 0.8s ease;
+}
+
+.barFillAfter {
+  height: 100%;
+  background: var(--color-accent-teal);
+  border-radius: 6px;
+  transition: width 0.8s ease;
+}
+
+.barFillAfterAmber {
+  background: var(--color-accent-amber);
+}
+
+.note {
+  font-size: 0.8rem;
+  color: var(--color-muted-soft);
+}
+
+/* Summary Stats */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.statCard {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  transition: border-color 0.2s ease;
+}
+
+.statCard:hover {
+  border-color: var(--color-primary);
+}
+
+.statIcon {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.statValue {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--color-body-strong);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .benchmarkHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .dashboardWrapper {
+    padding: 16px;
+  }
+}
