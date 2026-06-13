@@ -4,6 +4,8 @@ All notable changes to DreamCoder will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-06-13
+
 ### Added
 - **Phase 3 — H5 Remote Access landed**: access desktop sessions from a phone or browser over LAN. Includes the H5 access toggle with token rotation, QR-code pairing, mobile chat UI, WebSocket remote bridge, and a strict CORS / loopback-vs-token request classifier (`src/server/h5AccessPolicy.ts`).
 - Direct-connect session manager and headless connect entrypoint (`src/server/createDirectConnectSession.ts`, `connectHeadless.ts`).
@@ -19,13 +21,24 @@ All notable changes to DreamCoder will be documented in this file.
 - Scheduled-task poll failure toast after 3 consecutive errors.
 - `useSessionById(id)` hook for memoized O(1) session lookups.
 - E2E benchmark suite (store-e2e, TTI, Tauri RSS).
+- Project website rebuilt on Vite (replaces the Docusaurus prototype) with a marketing landing page, architecture diagram, and 8 documentation pages (install, Computer Use, MCP, sessions/terminal, dev guide, troubleshooting, etc.).
+- Community setup: structured `.github/ISSUE_TEMPLATE` (bug / feature / good-first-issue + Discussions routing), good-first-issue / help-wanted README badges, CONTRIBUTING 5-minute Quick Start (zh + en), pinned Contributor Hub issue, and 10 curated onboarding issues.
+- Bilingual ROADMAP and CONTRIBUTING (zh + en).
+- H5 Access settings tab unhidden in Settings.
 
 ### Changed
 - sessionStore: removed dual `sessionsById` state; replaced with module-level memoized cache.
 - Sidebar, StatusBar, ActiveSession migrated to `useSessionById`.
+- Roadmap: Phase 3 marked complete; Phase 4 (IM adapters) opened as RFC #19.
+- README screenshots refreshed; product copy softened (removed "first-class" marketing language).
 
 ### Fixed
 - Midnight theme now correctly maps to dark color scheme.
+- Various README encoding issues (mojibake).
+- `switchConfig` removed from `colorMode` (deprecated upstream).
+
+### Removed
+- `docs/activity_rule.md` is no longer tracked (contest-specific doc moved out of the repo).
 
 ## [0.3.0] — 2026-05-31
 
