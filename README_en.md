@@ -16,8 +16,12 @@
 [![React 18](https://img.shields.io/badge/React-18-61DAFB)](https://react.dev/)
 [![Bun](https://img.shields.io/badge/Bun-✓-fbf0df)](https://bun.sh/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
+[![Good First Issues](https://img.shields.io/github/issues/GoDiao/dreamcoder/good%20first%20issue?color=7057ff&label=good%20first%20issues)](https://github.com/GoDiao/dreamcoder/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
+[![Help Wanted](https://img.shields.io/github/issues/GoDiao/dreamcoder/help%20wanted?color=008672&label=help%20wanted)](https://github.com/GoDiao/dreamcoder/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22)
 
 </div>
+
+> 🌱 **We're looking for contributors!** Browse our curated [good first issues](https://github.com/GoDiao/dreamcoder/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) and [help wanted](https://github.com/GoDiao/dreamcoder/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) tasks — each one comes with a mentor who'll walk you through your first PR. Start with the [contributing guide](docs/CONTRIBUTING_en.md).
 
 ---
 
@@ -69,9 +73,13 @@ DreamCoder brings a **native desktop interface** to that powerful engine.
 ## 📅 Roadmap
 
 - [x] **Phase 1**: Desktop App (Windows/macOS) + Multi-Provider System + Project Workspace
-- [x] **Phase 2**: CLI Backend Integration + Computer Use (Visual + UIA Mode)
-- [ ] **Phase 3**: Cloud Sync & H5 Remote Access (Access AI from phone/browser)
-- [ ] **Phase 4**: IM Adapters (Feishu, Slack, Discord, Telegram)
+- [x] **Phase 2**: CLI Backend Integration + Computer Use + MCP + Skills + Agent Teams
+- [x] **Phase 2.5**: Performance — bundle splitting, polling throttle, terminal LRU, sessionStore refactor
+- [ ] **Phase 3**: H5 Remote Access (access desktop sessions from phone/browser)
+- [ ] **Phase 4**: IM Adapter Integration (Feishu, DingTalk, Telegram, WeChat)
+- [ ] **Phase 5**: Release Automation + Auto-update
+
+See [ROADMAP](docs/ROADMAP_en.md)
 
 ---
 
@@ -106,7 +114,11 @@ cd desktop && bun run dev
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](docs/CONTRIBUTING.md) for details.
+Contributions are welcome! Please read our [Contributing Guide](docs/CONTRIBUTING_en.md) for details.
+
+## 📝 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## 📄 License
 
