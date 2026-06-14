@@ -391,6 +391,8 @@ export function startServer(port = PORT, host = HOST) {
     )
   })
 
+  const mem = process.memoryUsage()
+  console.log(`[mem:sidecar] server:startup rss=${(mem.rss/1024/1024).toFixed(1)}MB heapUsed=${(mem.heapUsed/1024/1024).toFixed(1)}MB`)
   console.log(`[Server] Claude Code API server running at http://${host}:${port}`)
   return server
 }

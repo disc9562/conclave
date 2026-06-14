@@ -55,7 +55,9 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
   fetchSessions: async (project?: string) => {
     set({ isLoading: true, error: null })
     try {
+      const t0 = performance.now()
       const { sessions: raw } = await sessionsApi.list({ project, limit: 100 })
+      console.log(`[mem] fetchSessions:got ${raw.length} sessions in ${(performance.now()-t0).toFixed(0)}ms`)
       let syncedSessions: SessionListItem[] = []
       set((state) => {
         const currentById = new Map(state.sessions.map((session) => [session.id, session]))

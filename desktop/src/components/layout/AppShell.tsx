@@ -86,15 +86,20 @@ export function AppShell() {
       }
 
       try {
+        console.log('[mem] AppShell:bootstrap:start')
         await initializeDesktopServerUrl()
+        console.log('[mem] AppShell:after-init-server')
         await fetchSettings()
+        console.log('[mem] AppShell:after-fetch-settings')
 
         if (!cancelled) {
           setReady(true)
         }
 
         void (async () => {
+          console.log('[mem] AppShell:restoreTabs:start')
           await useTabStore.getState().restoreTabs()
+          console.log('[mem] AppShell:restoreTabs:done')
           if (cancelled) return
           const { activeTabId: activeId, tabs } = useTabStore.getState()
           const activeTab = tabs.find((tab) => tab.sessionId === activeId)

@@ -6,8 +6,10 @@
  */
 
 import * as fs from 'node:fs/promises'
+import * as fsSync from 'node:fs'
 import * as path from 'node:path'
 import * as os from 'node:os'
+import * as readline from 'node:readline'
 import { ApiError } from '../middleware/errorHandler.js'
 import { sanitizePath as sanitizePortablePath } from '../../utils/sessionStoragePortable.js'
 import type { FileHistorySnapshot } from '../../utils/fileHistory.js'
@@ -279,6 +281,72 @@ export class SessionService {
       }
     }
     return entries
+  }
+
+  /**
+   * Stream a session file once to extract head+tail entries and count transcript
+   * messages. Never loads the full file into memory — peak memory is O(headLines).
+   */
+  private scanSessionFileHead(
+    filePath: string,
+    headLines: number,
+    tailLines: number,
+  ): Promise<{ entries: RawEntry[]; messageCount: number }> {
+    return new Promise((resolve, reject) => {
+      const head: string[] = []
+      const tailRing: string[] = new Array(tailLines)
+      let lineCount = 0
+      let messageCount = 0
+
+      const stream = fsSync.createReadStream(filePath, { encoding: 'utf-8' })
+      const rl = readline.createInterface({ input: stream, crlfDelay: Infinity })
+
+      rl.on('line', (line) => {
+        const trimmed = line.trim()
+        if (!trimmed) return
+
+        // Head capture
+        if (lineCount < headLines) {
+          head.push(trimmed)
+        }
+        // Ring buffer for tail
+        tailRing[lineCount % tailLines] = trimmed
+        lineCount++
+
+        // Fast string match for transcript counting
+        if (
+          (trimmed.includes('"type":"user"') || trimmed.includes('"type":"assistant"')) &&
+          trimmed.includes('"role"')
+        ) {
+          messageCount++
+        }
+      })
+
+      rl.on('close', () => {
+        // Reconstruct tail in order from ring buffer
+        const tailStart = Math.max(0, lineCount - tailLines)
+        const orderedTail: string[] = []
+        for (let i = tailStart; i < lineCount; i++) {
+          const entry = tailRing[i % tailLines]
+          if (entry) orderedTail.push(entry)
+        }
+
+        const selected = [...head, ...orderedTail]
+        const entries: RawEntry[] = []
+        for (const line of selected) {
+          try { entries.push(JSON.parse(line) as RawEntry) } catch { /* skip malformed */ }
+        }
+        resolve({ entries, messageCount })
+      })
+
+      rl.on('error', (err) => {
+        if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+          resolve({ entries: [], messageCount: 0 })
+        } else {
+          reject(err)
+        }
+      })
+    })
   }
 
   private async appendJsonlEntry(filePath: string, entry: Record<string, unknown>): Promise<void> {
@@ -1284,6 +1352,8 @@ export class SessionService {
     limit?: number
     offset?: number
   }): Promise<{ sessions: SessionListItem[]; total: number }> {
+    const mem0 = process.memoryUsage()
+    console.log(`[mem:sidecar] listSessions:start rss=${(mem0.rss/1024/1024).toFixed(1)}MB heapUsed=${(mem0.heapUsed/1024/1024).toFixed(1)}MB`)
     const sessionFiles = await this.discoverSessionFiles(options?.project)
     const filesWithStats = (await Promise.all(sessionFiles.map(async (sessionFile) => {
       try {
@@ -1303,24 +1373,19 @@ export class SessionService {
     const limit = options?.limit ?? 50
     const paginatedFiles = filesWithStats.slice(offset, offset + limit)
 
-    // Build session list items with metadata from file stats & first entries
+    // Build session list items with metadata from file head/tail only (avoid loading full files)
     const items = (await Promise.all(paginatedFiles.map(async ({ filePath, projectDir, sessionId, stat }) => {
       try {
-        const entries = await this.readJsonlFile(filePath)
-        const workDir = this.resolveWorkDirFromEntries(entries, projectDir)
-        const projectRoot = await this.resolveProjectRootFromEntries(entries, workDir, projectDir)
+        const { entries: headEntries, messageCount } = await this.scanSessionFileHead(filePath, 100, 100)
+        const workDir = this.resolveWorkDirFromEntries(headEntries, projectDir)
+        const projectRoot = await this.resolveProjectRootFromEntries(headEntries, workDir, projectDir)
         const workDirExists = await this.pathExists(workDir)
 
-        // Count transcript messages only (user + assistant)
-        const messageCount = entries.filter(
-          (e) => (e.type === 'user' || e.type === 'assistant') && e.message?.role
-        ).length
+        const title = this.extractTitle(headEntries)
 
-        const title = this.extractTitle(entries)
-
-        // Find the earliest timestamp from entries, fallback to file birthtime
+        // Find the earliest timestamp from head entries, fallback to file birthtime
         let createdAt = stat.birthtime.toISOString()
-        for (const e of entries) {
+        for (const e of headEntries) {
           if (e.timestamp) {
             createdAt = e.timestamp
             break
@@ -1344,6 +1409,8 @@ export class SessionService {
       }
     }))).filter((item): item is SessionListItem => item !== null)
 
+    const mem1 = process.memoryUsage()
+    console.log(`[mem:sidecar] listSessions:done total=${total} returned=${items.length} rss=${(mem1.rss/1024/1024).toFixed(1)}MB heapUsed=${(mem1.heapUsed/1024/1024).toFixed(1)}MB`)
     return { sessions: items, total }
   }
 
@@ -1394,17 +1461,21 @@ export class SessionService {
    * Get only the messages for a session (lighter than full detail).
    */
   async getSessionMessages(sessionId: string): Promise<MessageEntry[]> {
+    const mem0 = process.memoryUsage()
     const found = await this.findSessionFile(sessionId)
     if (!found) {
       throw ApiError.notFound(`Session not found: ${sessionId}`)
     }
 
     const entries = await this.readJsonlFile(found.filePath)
-    return await this.appendSubagentToolMessages(
+    const messages = await this.appendSubagentToolMessages(
       found.projectDir,
       sessionId,
       this.entriesToMessages(entries),
     )
+    const mem1 = process.memoryUsage()
+    console.log(`[mem:sidecar] getSessionMessages:done session=${sessionId} entries=${entries.length} msgs=${messages.length} rss=${(mem1.rss/1024/1024).toFixed(1)}MB heapUsed=${(mem1.heapUsed/1024/1024).toFixed(1)}MB (delta rss=${((mem1.rss-mem0.rss)/1024/1024).toFixed(1)}MB)`)
+    return messages
   }
 
   /**

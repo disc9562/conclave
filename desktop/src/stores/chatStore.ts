@@ -775,8 +775,13 @@ function mergeSlashCommandUpdates(
 }
 
 async function fetchAndMapSessionHistory(sessionId: string) {
+  const t0 = performance.now()
   const { messages, taskNotifications } = await sessionsApi.getMessages(sessionId)
+  const t1 = performance.now()
+  console.log(`[mem] loadHistory:fetched ${messages.length} msgs in ${(t1-t0).toFixed(0)}ms`)
   const uiMessages = mapHistoryMessagesToUiMessages(messages)
+  const t2 = performance.now()
+  console.log(`[mem] loadHistory:mapped ${uiMessages.length} uiMsgs in ${(t2-t1).toFixed(0)}ms (total ${(t2-t0).toFixed(0)}ms)`)
   const restoredNotifications = {
     ...reconstructAgentNotifications(messages),
     ...agentNotificationRecordFromList(taskNotifications ?? []),
@@ -834,6 +839,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
 
     get().loadHistory(sessionId)
+    console.log('[mem] connectToSession:loadHistory-called')
     sessionsApi.getSlashCommands(sessionId)
       .then(({ commands }) => {
         if (get().sessions[sessionId]) {

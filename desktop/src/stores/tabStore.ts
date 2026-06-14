@@ -5,6 +5,14 @@ import { destroyTerminalRuntime } from '../lib/terminalRuntime'
 
 const TAB_STORAGE_KEY = 'dreamcoder-open-tabs'
 
+// Debug helper for memory profiling during startup
+const memLog = (label: string) => {
+  if (typeof process !== 'undefined' && process.memoryUsage) {
+    const m = process.memoryUsage()
+    console.log(`[mem] ${label}: rss=${(m.rss/1024/1024).toFixed(1)}MB heapUsed=${(m.heapUsed/1024/1024).toFixed(1)}MB heapTotal=${(m.heapTotal/1024/1024).toFixed(1)}MB external=${(m.external/1024/1024).toFixed(1)}MB`)
+  }
+}
+
 export const SETTINGS_TAB_ID = '__settings__'
 export const SCHEDULED_TAB_ID = '__scheduled__'
 export const TERMINAL_TAB_PREFIX = '__terminal__'
@@ -184,7 +192,9 @@ export const useTabStore = create<TabStore>((set, get) => ({
         return
       }
 
+      memLog('restoreTabs:start')
       const { sessions } = await sessionsApi.list({ limit: 200 })
+      memLog(`restoreTabs:after-list (got ${sessions.length} sessions)`)
       const existingIds = new Set(sessions.map((s) => s.id))
 
       const validTabs: Tab[] = data.openTabs
