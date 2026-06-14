@@ -78,11 +78,19 @@ bun run tauri dev
 
 **Symptom:** After launching, DreamCoder's sidecar or WebView process grows to 8–16 GB of RAM, causing the UI to freeze or the OS to kill the process (OOM).
 
-**Status:** Under active investigation — tracked in [#25](https://github.com/GoDiao/dreamcoder/issues/25).
+**Status:** Partially resolved — tracked in [#25](https://github.com/GoDiao/dreamcoder/issues/25).
 
 **Confirmed on:** Windows 10 x64, Arch Linux.
 
-**Workaround:** None yet. If you can capture a memory profile (e.g., `heapsnapshot` from the sidecar, or your OS's process monitor) and attach it to [#25](https://github.com/GoDiao/dreamcoder/issues/25), that helps a lot.
+**What we know so far:**
+
+There appear to be **two separate issues**:
+
+1. **Sidecar memory spike on startup** — `listSessions` was loading every session's full JSONL file into memory. Fixed in [#31](https://github.com/GoDiao/dreamcoder/pull/31): sidecar peak RSS dropped from ~2.5 GB to ~900 MB on a 48-session machine. If you're still on an older build, update to the latest `dev` / `master`.
+
+2. **WebKitGTK memory leak (Linux-specific)** — On Linux with Tauri + WebKitGTK, `WebKitWebProcess` can grow at ~100 MB/s even when the sidecar is not running and the frontend behaves normally in a standalone browser. This suggests a Tauri/WebKitGTK-level issue, possibly specific to certain window managers (e.g. Hyprland).
+
+For platform-specific investigation details, see [ENVIRONMENT_TESTING.md](ENVIRONMENT_TESTING.md).
 
 ---
 
