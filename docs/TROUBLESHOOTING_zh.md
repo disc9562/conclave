@@ -78,11 +78,19 @@ bun run tauri dev
 
 **现象：** 启动后，DreamCoder 的 sidecar 或 WebView 进程内存飙升至 8–16 GB，导致 UI 卡死或系统杀进程（OOM）。
 
-**状态：** 正在调查中 —— 跟踪 issue [#25](https://github.com/GoDiao/dreamcoder/issues/25)。
+**状态：** 部分修复 —— 跟踪 issue [#25](https://github.com/GoDiao/dreamcoder/issues/25)。
 
 **已确认平台：** Windows 10 x64、Arch Linux。
 
-**临时方案：** 暂无。如果你能抓取内存快照（如 sidecar 的 `heapsnapshot` 或系统进程监控数据）贴到 [#25](https://github.com/GoDiao/dreamcoder/issues/25)，会很有帮助。
+**目前已知：**
+
+目前看来存在**两个独立的问题**：
+
+1. **Sidecar 启动时内存飙升** — `listSessions` 会把每个 session 的完整 JSONL 文件加载到内存。已在 [#31](https://github.com/GoDiao/dreamcoder/pull/31) 修复：48 个 session 的机器上 sidecar 峰值从 ~2.5 GB 降到 ~900 MB。如果你还在用旧版本，请更新到最新的 `dev` / `master`。
+
+2. **WebKitGTK 内存泄漏（Linux 专属）** — 在 Linux + Tauri + WebKitGTK 环境下，即使 sidecar 没运行、前端在独立浏览器中正常，`WebKitWebProcess` 仍以 ~100 MB/s 的速度增长。这表明是 Tauri/WebKitGTK 层面的问题，可能与特定窗口管理器（如 Hyprland）有关。
+
+各平台的具体调查记录见 [ENVIRONMENT_TESTING.md](ENVIRONMENT_TESTING.md)。
 
 ---
 
