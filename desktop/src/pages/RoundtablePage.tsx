@@ -17,14 +17,16 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
   const pendingPermission = useChatStore((s) => s.sessions[sessionId]?.pendingPermission)
   const [input, setInput] = useState('')
   const [claudeAct, setClaudeAct] = useState(false)
+  const [grokAct, setGrokAct] = useState(false)
 
   const running = session.status === 'running'
 
   const start = () => {
     if (!input.trim()) return
-    const modes: { claude: RoundtableCapabilityMode; codex: RoundtableCapabilityMode } = {
+    const modes: { claude: RoundtableCapabilityMode; codex: RoundtableCapabilityMode; grok: RoundtableCapabilityMode } = {
       claude: claudeAct ? 'act' : 'discuss',
       codex: 'discuss', // codex act is Phase 2
+      grok: grokAct ? 'act' : 'discuss',
     }
     startRoundtable(sessionId, input.trim(), modes)
     setInput('')
@@ -69,6 +71,23 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
           <span className="text-xs font-semibold text-[var(--color-text-tertiary)]">codex</span>
           <span aria-hidden className="text-sm">
             🔒
+          </span>
+        </button>
+
+        <button
+          type="button"
+          aria-label="toggle grok act"
+          onClick={() => setGrokAct((v) => !v)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--color-surface-container-high)] border transition-all hover:brightness-110"
+          style={{ borderColor: `${participantColorHex('grok')}55` }}
+        >
+          <span
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: participantColorHex('grok') }}
+          />
+          <span className="text-xs font-semibold text-[var(--color-text-primary)]">grok</span>
+          <span aria-hidden className="text-sm">
+            {grokAct ? '🔓' : '🔒'}
           </span>
         </button>
 

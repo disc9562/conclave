@@ -30,6 +30,7 @@ import { shouldCreateWorktreeForSessionLaunch } from '../services/repositoryLaun
 import { RoundtableController } from '../services/roundtable/RoundtableController.js'
 import { ClaudeParticipant } from '../services/roundtable/ClaudeParticipant.js'
 import { CodexParticipant } from '../services/roundtable/CodexParticipant.js'
+import { GrokParticipant } from '../services/roundtable/GrokParticipant.js'
 import { Moderator } from '../services/roundtable/Moderator.js'
 import { createClaudeTurnPort } from '../services/roundtable/createClaudeTurnPort.js'
 
@@ -51,6 +52,7 @@ const roundtableController = new RoundtableController({
   buildParticipants: (sessionId) => new Map([
     ['claude', new ClaudeParticipant(createClaudeTurnPort(sessionId))],
     ['codex', new CodexParticipant((argv) => Bun.spawn(argv, { stdout: 'pipe' }))],
+    ['grok', new GrokParticipant((argv) => Bun.spawn(argv, { stdout: 'pipe' }))],
   ]),
   buildModerator: (sessionId, ids) => new Moderator(async (prompt) => {
     let acc = ''

@@ -94,7 +94,7 @@ type RoundtableStore = {
   startRoundtable: (
     sessionId: string,
     content: string,
-    modes: { claude: RoundtableCapabilityMode; codex: RoundtableCapabilityMode },
+    modes: { claude?: RoundtableCapabilityMode; codex?: RoundtableCapabilityMode; grok?: RoundtableCapabilityMode },
   ) => void
   stopRoundtable: (sessionId: string) => void
   resetSession: (sessionId: string) => void

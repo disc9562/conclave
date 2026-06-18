@@ -5,7 +5,9 @@ import type { Moderator } from './Moderator.js'
 import type { CapabilityMode, ParticipantId } from './types.js'
 import { createTranscript, appendEntry } from './transcript.js'
 
-type CliModes = Record<'claude' | 'codex', CapabilityMode>
+// Per-participant capability authorization. Any id omitted defaults to 'discuss'
+// at start() time, so callers only send the participants they want to authorize.
+type CliModes = Partial<Record<ParticipantId, CapabilityMode>>
 
 export type RoundtableServerEvent = { type: 'roundtable_event'; event: RoundtableEvent; timestamp: number }
 
@@ -32,10 +34,10 @@ export class RoundtableController {
     const participants = this.deps.buildParticipants(sessionId)
     const ids = [...participants.keys()]
     const moderator = this.deps.buildModerator(sessionId, ids)
-    const modeMap = new Map<ParticipantId, CapabilityMode>([
-      ['claude', modes.claude],
-      ['codex', modes.codex],
-    ])
+    // Authorize each live participant from `modes`; unlisted ids stay discuss-only.
+    const modeMap = new Map<ParticipantId, CapabilityMode>(
+      ids.map((id) => [id, modes[id] ?? 'discuss']),
+    )
     const orch = new RoundtableOrchestrator({ participants, moderator, modes: modeMap, maxRounds: this.deps.maxRounds })
 
     const ac = new AbortController()
