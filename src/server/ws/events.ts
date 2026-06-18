@@ -4,6 +4,8 @@
  * 定义客户端与服务器之间 WebSocket 通信的消息类型。
  */
 
+import type { RoundtableServerEvent } from '../services/roundtable/RoundtableController.js'
+
 // ============================================================================
 // Client → Server
 // ============================================================================
@@ -25,6 +27,8 @@ export type ClientMessage =
     }
   | { type: 'set_permission_mode'; mode: string }
   | { type: 'set_runtime_config'; providerId: string | null; modelId: string }
+  | { type: 'roundtable_start'; content: string; modes: { claude: 'discuss' | 'act'; codex: 'discuss' | 'act' } }
+  | { type: 'roundtable_stop' }
   | { type: 'stop_generation' }
   | { type: 'ping' }
 
@@ -80,6 +84,7 @@ export type ServerMessage =
   | { type: 'team_deleted'; teamName: string }
   | { type: 'task_update'; taskId: string; status: string; progress?: string }
   | { type: 'session_title_updated'; sessionId: string; title: string }
+  | RoundtableServerEvent
 
 export type TokenUsage = {
   input_tokens: number

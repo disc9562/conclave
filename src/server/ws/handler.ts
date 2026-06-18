@@ -27,9 +27,28 @@ import {
   LOCAL_COMMAND_STDOUT_TAG,
 } from '../../constants/xml.js'
 import { shouldCreateWorktreeForSessionLaunch } from '../services/repositoryLaunchService.js'
+import { RoundtableController } from '../services/roundtable/RoundtableController.js'
+import { ClaudeParticipant } from '../services/roundtable/ClaudeParticipant.js'
+import { CodexParticipant } from '../services/roundtable/CodexParticipant.js'
+import { Moderator } from '../services/roundtable/Moderator.js'
+import { createClaudeTurnPort } from '../services/roundtable/createClaudeTurnPort.js'
 
 const settingsService = new SettingsService()
 const providerService = new ProviderService()
+
+const roundtableController = new RoundtableController({
+  buildParticipants: () => new Map([
+    ['claude', new ClaudeParticipant(createClaudeTurnPort(/* moderator/session id */ 'roundtable'))],
+    ['codex', new CodexParticipant((argv) => Bun.spawn(argv, { stdout: 'pipe' }))],
+  ]),
+  buildModerator: (ids) => new Moderator(async (prompt) => {
+    let acc = ''
+    await createClaudeTurnPort('roundtable')(prompt, 'discuss', (e) => { if (e.kind === 'text') acc += e.text })
+    return acc
+  }, ids),
+  now: () => Date.now(),
+  maxRounds: 12,
+})
 
 /**
  * Cache slash commands from CLI init messages, keyed by sessionId.
@@ -197,6 +216,20 @@ export const handleWebSocket = {
 
         case 'set_runtime_config':
           void handleSetRuntimeConfig(ws, message)
+          break
+
+        case 'roundtable_start': {
+          const { sessionId } = ws.data
+          void roundtableController
+            .start(sessionId, message.content, message.modes, (m) => sendToSession(sessionId, m))
+            .catch((err) => {
+              console.error(`[WS] Unhandled error in roundtable start:`, err)
+            })
+          break
+        }
+
+        case 'roundtable_stop':
+          roundtableController.stop(ws.data.sessionId)
           break
 
         case 'prewarm_session':
