@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useProviderStore } from '../../stores/providerStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { Input } from '../shared/Input'
@@ -12,8 +12,13 @@ export function ProviderOnboarding() {
   const [apiKey, setApiKey] = useState('')
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    if (presets.length === 0) fetchPresets()
+    // ponytail: run once on mount — fetchPresets identity is stable (Zustand action)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   if (presets.length === 0) {
-    fetchPresets()
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-surface)]">
         <div className="animate-spin w-5 h-5 border-2 border-[var(--color-brand)] border-t-transparent rounded-full" />
