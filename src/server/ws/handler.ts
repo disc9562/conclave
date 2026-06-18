@@ -102,7 +102,7 @@ const DEFAULT_PREWARM_IDLE_TIMEOUT_MS = 5 * 60_000
 async function sendRepositoryStartupStatus(
   ws: ServerWebSocket<WebSocketData>,
   sessionId: string,
-  reason: 'user_message' | 'prewarm_session',
+  reason: 'user_message' | 'prewarm_session' | 'roundtable_start',
 ): Promise<void> {
   if (reason !== 'user_message') return
 
@@ -220,11 +220,19 @@ export const handleWebSocket = {
 
         case 'roundtable_start': {
           const { sessionId } = ws.data
-          void roundtableController
-            .start(sessionId, message.content, message.modes, (m) => sendToSession(sessionId, m))
-            .catch((err) => {
+          void (async () => {
+            try {
+              await ensureCliSessionStarted(ws, sessionId, 'roundtable_start')
+              await roundtableController.start(
+                sessionId,
+                message.content,
+                message.modes,
+                (m) => sendToSession(sessionId, m),
+              )
+            } catch (err) {
               console.error(`[WS] Unhandled error in roundtable start:`, err)
-            })
+            }
+          })()
           break
         }
 
@@ -960,7 +968,7 @@ async function resolveSessionWorkDir(sessionId: string, fallback = os.homedir())
 async function ensureCliSessionStarted(
   ws: ServerWebSocket<WebSocketData>,
   sessionId: string,
-  reason: 'user_message' | 'prewarm_session',
+  reason: 'user_message' | 'prewarm_session' | 'roundtable_start',
 ): Promise<void> {
   const pendingStartup = sessionStartupPromises.get(sessionId)
   if (pendingStartup) {
