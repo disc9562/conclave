@@ -87,6 +87,15 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
       {/* Conversation */}
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 max-w-3xl mx-auto w-full space-y-3">
         {session.entries.map((e) => {
+          if (e.kind === 'user') {
+            return (
+              <div key={e.id} className="flex justify-end">
+                <div className="max-w-[80%] rounded-xl bg-[image:var(--gradient-btn-primary)] text-[var(--color-btn-primary-fg)] px-4 py-2.5 shadow-[var(--shadow-button-primary)]">
+                  <p className="whitespace-pre-wrap leading-relaxed text-sm">{e.text}</p>
+                </div>
+              </div>
+            )
+          }
           if (e.kind === 'system') {
             return (
               <div
@@ -126,8 +135,10 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
                 {e.author}
               </p>
               <div
-                className="rounded-xl border bg-[var(--color-surface-container-low)] p-4 shadow-[var(--shadow-dropdown)]"
-                style={{ borderColor: `${tint}40`, borderLeft: `3px solid ${tint}` }}
+                className="rounded-xl border p-4 shadow-[var(--shadow-dropdown)]"
+                // ponytail: tint the bubble bg with the speaker's color (~12% alpha)
+                // so each AI's sentences are visually grouped by background, not just the label.
+                style={{ backgroundColor: `${tint}1f`, borderColor: `${tint}55`, borderLeft: `3px solid ${tint}` }}
               >
                 <p className="whitespace-pre-wrap leading-relaxed text-[var(--color-text-primary)]">
                   {e.text}
@@ -158,7 +169,9 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
             value={input}
             onChange={(ev) => setInput(ev.target.value)}
             onKeyDown={(ev) => {
-              if (ev.key === 'Enter' && !running) start()
+              // ev.nativeEvent.isComposing is true while an IME (注音/拼音/かな…)
+              // is mid-composition; Enter then confirms a candidate, it must not send.
+              if (ev.key === 'Enter' && !ev.nativeEvent.isComposing && !running) start()
             }}
             disabled={running}
           />

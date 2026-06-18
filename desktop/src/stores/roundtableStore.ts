@@ -7,6 +7,7 @@ import type {
 } from '../types/chat'
 
 export type RoundtableEntry =
+  | { id: string; kind: 'user'; text: string }
   | { id: string; kind: 'message'; author: RoundtableParticipantId; text: string }
   | { id: string; kind: 'system'; text: string }
   | { id: string; kind: 'error'; author: RoundtableParticipantId; text: string }
@@ -111,7 +112,13 @@ export const useRoundtableStore = create<RoundtableStore>((set, get) => ({
     set((state) => ({
       sessions: {
         ...state.sessions,
-        [sessionId]: { ...emptyRoundtableSession(), status: 'running' },
+        [sessionId]: {
+          ...emptyRoundtableSession(),
+          status: 'running',
+          // Echo the user's question so the thread reads "you asked → claude → codex".
+          entries: [{ id: 'rt-user-0', kind: 'user', text: content }],
+          seq: 1,
+        },
       },
     }))
     wsManager.send(sessionId, { type: 'roundtable_start', content, modes })
