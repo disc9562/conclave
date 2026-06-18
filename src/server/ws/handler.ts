@@ -36,6 +36,17 @@ import { createClaudeTurnPort } from '../services/roundtable/createClaudeTurnPor
 const settingsService = new SettingsService()
 const providerService = new ProviderService()
 
+// The moderator runs on its OWN derived CLI session so its decision prompts and
+// JSON replies never enter the user-visible Claude discussion conversation (and
+// the discussion never confuses the moderator). Suffix uses only [0-9a-zA-Z_-]
+// to satisfy the /sdk/<id> route's id validation; base ids are UUIDs (36 chars)
+// so total stays well under the 64-char limit.
+// ponytail: collision only if a real base id literally ends with '__moderator'.
+const MODERATOR_SESSION_SUFFIX = '__moderator'
+function roundtableModeratorSessionId(sessionId: string): string {
+  return `${sessionId}${MODERATOR_SESSION_SUFFIX}`
+}
+
 const roundtableController = new RoundtableController({
   buildParticipants: (sessionId) => new Map([
     ['claude', new ClaudeParticipant(createClaudeTurnPort(sessionId))],
@@ -43,7 +54,7 @@ const roundtableController = new RoundtableController({
   ]),
   buildModerator: (sessionId, ids) => new Moderator(async (prompt) => {
     let acc = ''
-    await createClaudeTurnPort(sessionId)(prompt, 'discuss', (e) => { if (e.kind === 'text') acc += e.text })
+    await createClaudeTurnPort(roundtableModeratorSessionId(sessionId))(prompt, 'discuss', (e) => { if (e.kind === 'text') acc += e.text })
     return acc
   }, ids),
   now: () => Date.now(),
@@ -220,9 +231,11 @@ export const handleWebSocket = {
 
         case 'roundtable_start': {
           const { sessionId } = ws.data
+          const moderatorSessionId = roundtableModeratorSessionId(sessionId)
           void (async () => {
             try {
               await ensureCliSessionStarted(ws, sessionId, 'roundtable_start')
+              await ensureCliSessionStarted(ws, moderatorSessionId, 'roundtable_start')
               await roundtableController.start(
                 sessionId,
                 message.content,
@@ -231,6 +244,11 @@ export const handleWebSocket = {
               )
             } catch (err) {
               console.error(`[WS] Unhandled error in roundtable start:`, err)
+            } finally {
+              // Moderator session is only needed for the duration of the run;
+              // stop it here so each roundtable doesn't leak a CLI subprocess.
+              conversationService.stopSession(moderatorSessionId)
+              cleanupSessionRuntimeState(moderatorSessionId)
             }
           })()
           break
@@ -946,9 +964,14 @@ function bindPrewarmMetadataCapture(sessionId: string) {
 }
 
 async function resolveSessionWorkDir(sessionId: string, fallback = os.homedir()): Promise<string> {
+  // The moderator's derived session id isn't in sessionService; resolve its
+  // workDir from the real base session so it launches in the same project.
+  const lookupId = sessionId.endsWith(MODERATOR_SESSION_SUFFIX)
+    ? sessionId.slice(0, -MODERATOR_SESSION_SUFFIX.length)
+    : sessionId
   let workDir = fallback
   try {
-    const resolved = await sessionService.getSessionWorkDir(sessionId)
+    const resolved = await sessionService.getSessionWorkDir(lookupId)
     if (resolved) workDir = resolved
     console.log(
       `[WS] resolveSessionWorkDir: sessionId=${sessionId}, resolved workDir=${JSON.stringify(
