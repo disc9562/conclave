@@ -25,20 +25,29 @@ async function collect(it: AsyncIterable<ParticipantEvent>): Promise<Participant
 }
 
 describe('CodexParticipant', () => {
-  test('streams stdout as text then done', async () => {
+  test('emits only the agent_message text from JSONL, dropping banner/usage events', async () => {
     const argvs: string[][] = []
-    const p = new CodexParticipant(stubSpawn('codex says hi', argvs))
+    const jsonl = [
+      '{"type":"thread.started","thread_id":"x"}',
+      '{"type":"turn.started"}',
+      '{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"codex says hi"}}',
+      '{"type":"turn.completed","usage":{"output_tokens":17}}',
+      '',
+    ].join('\n')
+    const p = new CodexParticipant(stubSpawn(jsonl, argvs))
     const t = appendEntry(createTranscript(), { author: 'user', text: 'q', timestamp: 1 })
     const events = await collect(p.send(t, 'discuss'))
     expect(events.filter((e) => e.kind === 'text').map((e) => (e as { text: string }).text).join('')).toBe('codex says hi')
     expect(events.at(-1)).toEqual({ kind: 'done' })
   })
 
-  test('discuss mode passes the read-only flag; act mode does not', async () => {
+  test('discuss mode passes the read-only flag; act mode does not; both pass --json', async () => {
     const argvs: string[][] = []
-    await collect(new CodexParticipant(stubSpawn('x', argvs)).send(createTranscript(), 'discuss'))
-    await collect(new CodexParticipant(stubSpawn('x', argvs)).send(createTranscript(), 'act'))
+    await collect(new CodexParticipant(stubSpawn('', argvs)).send(createTranscript(), 'discuss'))
+    await collect(new CodexParticipant(stubSpawn('', argvs)).send(createTranscript(), 'act'))
     expect(argvs[0].join(' ')).toContain('read-only')
     expect(argvs[1].join(' ')).not.toContain('read-only')
+    expect(argvs[0].join(' ')).toContain('--json')
+    expect(argvs[1].join(' ')).toContain('--json')
   })
 })
