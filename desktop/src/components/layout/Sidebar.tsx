@@ -18,6 +18,23 @@ const SESSION_LIST_FOCUS_REFRESH_MIN_MS = 5_000
 const PROJECT_ORDER_STORAGE_KEY = 'dreamcoder-sidebar-project-order'
 const PROJECT_PINNED_STORAGE_KEY = 'dreamcoder-sidebar-pinned-projects'
 const PROJECT_HIDDEN_STORAGE_KEY = 'dreamcoder-sidebar-hidden-projects'
+const ROUNDTABLE_SESSIONS_STORAGE_KEY = 'dreamcoder-roundtable-sessions'
+// Sentinel project key: roundtable sessions are real CLI sessions, so without
+// this they get grouped into their workdir's project and look like normal chats.
+// ponytail: track their ids in localStorage and collapse them into one synthetic
+// group — no backend session-schema change. Ceiling: per-device; a deleted
+// session leaves a stale id that simply matches nothing.
+const ROUNDTABLE_PROJECT_KEY = '__roundtable__'
+
+function loadRoundtableSessionIds(): Set<string> {
+  if (typeof localStorage === 'undefined') return new Set()
+  try {
+    const parsed = JSON.parse(localStorage.getItem(ROUNDTABLE_SESSIONS_STORAGE_KEY) ?? '[]')
+    return new Set(Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
 const PROJECT_ORGANIZATION_STORAGE_KEY = 'dreamcoder-sidebar-project-organization'
 const PROJECT_SORT_STORAGE_KEY = 'dreamcoder-sidebar-project-sort'
 const PROJECT_GROUP_VISIBLE_COUNT = 6
@@ -65,6 +82,7 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
   const closeTab = useTabStore((s) => s.closeTab)
   const disconnectSession = useChatStore((s) => s.disconnectSession)
   const [searchQuery, setSearchQuery] = useState('')
+  const [roundtableSessionIds, setRoundtableSessionIds] = useState<Set<string>>(() => loadRoundtableSessionIds())
   const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null)
   const [projectContextMenu, setProjectContextMenu] = useState<{ key: string; x: number; y: number } | null>(null)
   const [projectHeaderMenu, setProjectHeaderMenu] = useState<{ type: SidebarHeaderMenuType; x: number; y: number } | null>(null)
@@ -115,7 +133,10 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
     return result
   }, [sessions, searchQuery])
 
-  const projectGroups = useMemo(() => groupByProject(filteredSessions, projectSortBy), [filteredSessions, projectSortBy])
+  const projectGroups = useMemo(
+    () => groupByProject(filteredSessions, projectSortBy, roundtableSessionIds, t('sidebar.roundtable')),
+    [filteredSessions, projectSortBy, roundtableSessionIds, t],
+  )
   const orderedProjectGroups = useMemo(
     () => applyProjectOrder(projectGroups, projectOrder, pinnedProjectKeys, projectOrganization, projectSortBy),
     [projectGroups, projectOrder, pinnedProjectKeys, projectOrganization, projectSortBy],
@@ -291,6 +312,15 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
   const openRoundtableTab = useCallback(async () => {
     try {
       const sessionId = await useSessionStore.getState().createSession()
+      setRoundtableSessionIds((prev) => {
+        const next = new Set(prev).add(sessionId)
+        try {
+          localStorage.setItem(ROUNDTABLE_SESSIONS_STORAGE_KEY, JSON.stringify([...next]))
+        } catch {
+          // UI grouping preference; ignore storage failures.
+        }
+        return next
+      })
       useTabStore.getState().openTab(sessionId, t('sidebar.roundtable'), 'roundtable')
       useChatStore.getState().connectToSession(sessionId)
       closeMobileDrawer()
@@ -989,7 +1019,11 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
                                       handleBatchSessionClick(event, session.id)
                                       return
                                     }
-                                    useTabStore.getState().openTab(session.id, session.title)
+                                    useTabStore.getState().openTab(
+                                      session.id,
+                                      project.key === ROUNDTABLE_PROJECT_KEY ? t('sidebar.roundtable') : session.title,
+                                      project.key === ROUNDTABLE_PROJECT_KEY ? 'roundtable' : undefined,
+                                    )
                                     useChatStore.getState().connectToSession(session.id)
                                     closeMobileDrawer()
                                   }}
@@ -1476,10 +1510,15 @@ function HeaderMenuItem({
   )
 }
 
-function groupByProject(sessions: SessionListItem[], sortBy: SidebarProjectSortBy): ProjectGroup[] {
+function groupByProject(
+  sessions: SessionListItem[],
+  sortBy: SidebarProjectSortBy,
+  roundtableIds: Set<string> = new Set(),
+  roundtableLabel = 'Roundtable',
+): ProjectGroup[] {
   const groupsByKey = new Map<string, SessionListItem[]>()
   for (const session of sessions) {
-    const key = getSessionProjectKey(session)
+    const key = roundtableIds.has(session.id) ? ROUNDTABLE_PROJECT_KEY : getSessionProjectKey(session)
     const items = groupsByKey.get(key) ?? []
     items.push(session)
     groupsByKey.set(key, items)
@@ -1488,6 +1527,9 @@ function groupByProject(sessions: SessionListItem[], sortBy: SidebarProjectSortB
   const groups = [...groupsByKey.entries()].map(([key, items]) => {
     const sortedSessions = [...items].sort((a, b) => compareSessionsByTimestamp(a, b, sortBy))
     const newest = sortedSessions[0]
+    if (key === ROUNDTABLE_PROJECT_KEY) {
+      return { key, title: `🗣 ${roundtableLabel}`, subtitle: null, workDir: undefined, sessions: sortedSessions }
+    }
     const projectRoot = newest?.projectRoot || newest?.workDir || key
     return {
       key,
@@ -1510,6 +1552,8 @@ function applyProjectOrder(
 ): ProjectGroup[] {
   const orderIndex = new Map(projectOrder.map((key, index) => [key, index]))
   return [...groups].sort((a, b) => {
+    if (a.key === ROUNDTABLE_PROJECT_KEY) return -1
+    if (b.key === ROUNDTABLE_PROJECT_KEY) return 1
     const aPinned = pinnedProjectKeys.has(a.key)
     const bPinned = pinnedProjectKeys.has(b.key)
     if (aPinned !== bPinned) return aPinned ? -1 : 1
