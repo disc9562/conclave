@@ -12,11 +12,11 @@ describe('RoundtableController', () => {
   test('emits roundtable_event ServerMessages with stamped timestamps', async () => {
     const emitted: Array<{ type: string }> = []
     const controller = new RoundtableController({
-      buildParticipants: () => new Map<ParticipantId, Participant>([
+      buildParticipants: (_sessionId) => new Map<ParticipantId, Participant>([
         ['claude', fake('claude', 'a')],
         ['codex', fake('codex', 'b')],
       ]),
-      buildModerator: (ids) => new Moderator(
+      buildModerator: (_sessionId, ids) => new Moderator(
         (() => { let i = 0; const seq = ['claude', 'codex', 'done']; return async () => JSON.stringify({ nextSpeaker: seq[i++] }) })(),
         ids,
       ),

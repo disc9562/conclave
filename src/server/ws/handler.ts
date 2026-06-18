@@ -37,13 +37,13 @@ const settingsService = new SettingsService()
 const providerService = new ProviderService()
 
 const roundtableController = new RoundtableController({
-  buildParticipants: () => new Map([
-    ['claude', new ClaudeParticipant(createClaudeTurnPort(/* moderator/session id */ 'roundtable'))],
+  buildParticipants: (sessionId) => new Map([
+    ['claude', new ClaudeParticipant(createClaudeTurnPort(sessionId))],
     ['codex', new CodexParticipant((argv) => Bun.spawn(argv, { stdout: 'pipe' }))],
   ]),
-  buildModerator: (ids) => new Moderator(async (prompt) => {
+  buildModerator: (sessionId, ids) => new Moderator(async (prompt) => {
     let acc = ''
-    await createClaudeTurnPort('roundtable')(prompt, 'discuss', (e) => { if (e.kind === 'text') acc += e.text })
+    await createClaudeTurnPort(sessionId)(prompt, 'discuss', (e) => { if (e.kind === 'text') acc += e.text })
     return acc
   }, ids),
   now: () => Date.now(),
