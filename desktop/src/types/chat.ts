@@ -1,6 +1,29 @@
 import type { PermissionMode } from './settings'
 import type { RuntimeSelection } from './runtime'
 
+export type RoundtableParticipantId = 'claude' | 'codex' | 'grok'
+export type RoundtableCapabilityMode = 'discuss' | 'act'
+export type RoundtableToolAction = {
+  toolName: string
+  input: unknown
+  toolUseId?: string
+  description?: string
+}
+export type RoundtableEvent =
+  | { kind: 'speaker-start'; author: RoundtableParticipantId; reason?: string }
+  | { kind: 'text'; author: RoundtableParticipantId; text: string }
+  | { kind: 'proposal'; author: RoundtableParticipantId; action: RoundtableToolAction }
+  | { kind: 'action-request'; author: RoundtableParticipantId; action: RoundtableToolAction }
+  | { kind: 'speaker-end'; author: RoundtableParticipantId }
+  | { kind: 'participant-error'; author: RoundtableParticipantId; error: string }
+  | { kind: 'round-limit'; rounds: number }
+  | { kind: 'complete' }
+export type RoundtableServerEvent = {
+  type: 'roundtable_event'
+  event: RoundtableEvent
+  timestamp: number
+}
+
 // Source: src/server/ws/events.ts
 
 // ─── Client → Server ──────────────────────────────────────────────
@@ -24,6 +47,8 @@ export type ClientMessage =
   | ({ type: 'set_runtime_config' } & RuntimeSelection)
   | { type: 'stop_generation' }
   | { type: 'ping' }
+  | { type: 'roundtable_start'; content: string; modes: { claude: RoundtableCapabilityMode; codex: RoundtableCapabilityMode } }
+  | { type: 'roundtable_stop' }
 
 export type AttachmentRef = {
   type: 'file' | 'image'
@@ -92,6 +117,7 @@ export type ServerMessage =
   | { type: 'team_deleted'; teamName: string }
   | { type: 'task_update'; taskId: string; status: string; progress?: string }
   | { type: 'session_title_updated'; sessionId: string; title: string }
+  | RoundtableServerEvent
 
 export type TokenUsage = {
   input_tokens: number
