@@ -19,6 +19,7 @@ export const en = {
   // ─── Sidebar ──────────────────────────────────────
   'sidebar.newSession': 'New session',
   'sidebar.scheduled': 'Scheduled',
+  'sidebar.roundtable': 'Roundtable',
   'sidebar.terminal': 'Terminal',
   'sidebar.settings': 'Settings',
   'sidebar.searchPlaceholder': 'Search sessions...',

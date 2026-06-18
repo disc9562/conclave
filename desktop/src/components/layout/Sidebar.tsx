@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { Check, ChevronDown, Clock, Folder, FolderOpen, FolderPlus, GitBranch, LoaderCircle, MoreHorizontal, Pin, PinOff, RefreshCw, RotateCcw, SquarePen, X } from 'lucide-react'
+import { Check, ChevronDown, Clock, Folder, FolderOpen, FolderPlus, GitBranch, LoaderCircle, MoreHorizontal, Pin, PinOff, RefreshCw, RotateCcw, SquarePen, Users, X } from 'lucide-react'
 import { DreamCoderIcon } from '../shared/DreamCoderIcon'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useUIStore } from '../../stores/uiStore'
@@ -287,6 +287,20 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
       })
     }
   }, [addToast, closeMobileDrawer, restoreHiddenProjectForWorkDir, t])
+
+  const openRoundtableTab = useCallback(async () => {
+    try {
+      const sessionId = await useSessionStore.getState().createSession()
+      useTabStore.getState().openTab(sessionId, t('sidebar.roundtable'), 'roundtable')
+      useChatStore.getState().connectToSession(sessionId)
+      closeMobileDrawer()
+    } catch (error) {
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : t('sidebar.sessionListFailed'),
+      })
+    }
+  }, [addToast, closeMobileDrawer, t])
 
   const openProjectHeaderMenu = useCallback((event: React.MouseEvent, type: SidebarHeaderMenuType) => {
     event.stopPropagation()
@@ -687,6 +701,19 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
           icon={<PlusIcon />}
         >
           {t('sidebar.newSession')}
+        </NavItem>
+        {/* Roundtable */}
+        <NavItem
+          active={false}
+          collapsed={!expanded}
+          label={t('sidebar.roundtable')}
+          touchFriendly={isMobile}
+          onClick={() => {
+            void openRoundtableTab()
+          }}
+          icon={<Users size={18} strokeWidth={2} aria-hidden="true" />}
+        >
+          {t('sidebar.roundtable')}
         </NavItem>
         {/* Scheduled Tasks */}
         {!isMobile && (

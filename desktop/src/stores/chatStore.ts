@@ -5,6 +5,7 @@ import { useTeamStore } from './teamStore'
 import { useSessionStore } from './sessionStore'
 import { useCLITaskStore } from './cliTaskStore'
 import { useSessionRuntimeStore } from './sessionRuntimeStore'
+import { useRoundtableStore } from './roundtableStore'
 import { useTabStore } from './tabStore'
 import { randomSpinnerVerb } from '../config/spinnerVerbs'
 import { notifyDesktop } from '../lib/desktopNotifications'
@@ -1824,6 +1825,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         }
         break
       case 'pong':
+        break
+
+      case 'roundtable_event':
+        useRoundtableStore.getState().applyEvent(sessionId, msg.event)
         break
     }
   },

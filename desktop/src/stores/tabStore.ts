@@ -17,7 +17,7 @@ export const SETTINGS_TAB_ID = '__settings__'
 export const SCHEDULED_TAB_ID = '__scheduled__'
 export const TERMINAL_TAB_PREFIX = '__terminal__'
 
-export type TabType = 'session' | 'settings' | 'scheduled' | 'terminal'
+export type TabType = 'session' | 'settings' | 'scheduled' | 'terminal' | 'roundtable'
 
 export type Tab = {
   sessionId: string
