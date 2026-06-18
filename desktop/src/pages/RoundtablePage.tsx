@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useRoundtableStore, emptyRoundtableSession } from '../stores/roundtableStore'
+import { useChatStore } from '../stores/chatStore'
+import { PermissionDialog } from '../components/chat/PermissionDialog'
 import type { RoundtableCapabilityMode } from '../types/chat'
 import { participantColorHex } from './roundtableColors'
 
@@ -12,6 +14,7 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
   const session = useRoundtableStore((s) => s.sessions[sessionId] ?? EMPTY_SESSION)
   const startRoundtable = useRoundtableStore((s) => s.startRoundtable)
   const stopRoundtable = useRoundtableStore((s) => s.stopRoundtable)
+  const pendingPermission = useChatStore((s) => s.sessions[sessionId]?.pendingPermission)
   const [input, setInput] = useState('')
   const [claudeAct, setClaudeAct] = useState(false)
 
@@ -133,6 +136,16 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
             </div>
           )
         })}
+
+        {pendingPermission && (
+          <PermissionDialog
+            sessionId={sessionId}
+            requestId={pendingPermission.requestId}
+            toolName={pendingPermission.toolName}
+            input={pendingPermission.input}
+            description={pendingPermission.description}
+          />
+        )}
       </div>
 
       {/* Input row */}
