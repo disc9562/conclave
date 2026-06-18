@@ -9,6 +9,7 @@ export type ConversationServiceLike = {
   onOutput: (sessionId: string, cb: (msg: any) => void) => void
   removeOutputCallback: (sessionId: string, cb: (msg: any) => void) => void
   sendMessage: (sessionId: string, content: string) => unknown
+  respondToPermission: (sessionId: string, requestId: string, allowed: boolean) => unknown
 }
 
 // Shapes below mirror what handler.ts's translateCliMessage discriminates on:
@@ -25,6 +26,8 @@ type CliMessage = {
   type?: string
   event?: CliStreamEvent
   message?: { content?: CliContentBlock[] }
+  request_id?: string
+  request?: { subtype?: string }
 }
 
 function isStreamTextDelta(cliMsg: CliMessage): cliMsg is CliMessage & { event: { delta: { text: string } } } {
@@ -43,6 +46,11 @@ function isStreamTextDelta(cliMsg: CliMessage): cliMsg is CliMessage & { event: 
 export function createClaudeTurnPort(
   sessionId: string,
   service: ConversationServiceLike = conversationService,
+  // autoAllowTools: self-resolve the engine's can_use_tool gate by auto-allowing.
+  // Used for the moderator session, which has NO permission responder wired (the
+  // desktop UI only subscribes to the base session) — without this, a moderator
+  // tool/ExitPlanMode request deadlocks the turn forever and freezes the roundtable.
+  opts: { autoAllowTools?: boolean } = {},
 ): ClaudeTurnPort {
   return (prompt, mode, onEvent) =>
     new Promise<void>((resolve) => {
@@ -53,6 +61,18 @@ export function createClaudeTurnPort(
       let sawStreamText = false
 
       const cb = (cliMsg: CliMessage) => {
+        // Auto-allow the moderator's tool/permission gate so the turn can reach
+        // 'result' (nobody else answers this session's can_use_tool requests).
+        if (
+          opts.autoAllowTools &&
+          cliMsg?.type === 'control_request' &&
+          cliMsg.request?.subtype === 'can_use_tool' &&
+          typeof cliMsg.request_id === 'string'
+        ) {
+          service.respondToPermission(sessionId, cliMsg.request_id, true)
+          return
+        }
+
         // Streamed text deltas (the live, incremental path).
         if (isStreamTextDelta(cliMsg)) {
           sawStreamText = true

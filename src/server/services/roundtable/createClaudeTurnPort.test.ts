@@ -10,12 +10,14 @@ function makeFakeService(script: any[]): {
   service: ConversationServiceLike
   permissionModes: string[]
   sentPrompts: string[]
+  allowed: string[]
   removed: () => boolean
 } {
   let registered: ((msg: any) => void) | null = null
   let wasRemoved = false
   const permissionModes: string[] = []
   const sentPrompts: string[] = []
+  const allowed: string[] = []
 
   const service: ConversationServiceLike = {
     setPermissionMode(_sessionId, mode) {
@@ -32,9 +34,12 @@ function makeFakeService(script: any[]): {
       // Drive the captured callback with the scripted engine messages.
       for (const msg of script) registered?.(msg)
     },
+    respondToPermission(_sessionId, requestId, isAllowed) {
+      if (isAllowed) allowed.push(requestId)
+    },
   }
 
-  return { service, permissionModes, sentPrompts, removed: () => wasRemoved }
+  return { service, permissionModes, sentPrompts, allowed, removed: () => wasRemoved }
 }
 
 describe('createClaudeTurnPort', () => {
@@ -81,6 +86,36 @@ describe('createClaudeTurnPort', () => {
     const { service, permissionModes } = makeFakeService([{ type: 'result', is_error: false }])
     await createClaudeTurnPort('sess-3', service)('prompt', 'act', () => {})
     expect(permissionModes).toEqual(['default'])
+  })
+
+  test('autoAllowTools self-resolves a can_use_tool gate so the turn reaches result', async () => {
+    // Without auto-allow this script would hang: the engine emits a tool gate
+    // and waits for a control_response that, for the moderator session, never
+    // comes. With autoAllowTools the port answers it itself and reaches result.
+    const script = [
+      { type: 'control_request', request_id: 'req-1', request: { subtype: 'can_use_tool', tool_name: 'ExitPlanMode' } },
+      { type: 'assistant', message: { content: [{ type: 'text', text: '{"nextSpeaker":"claude"}' }] } },
+      { type: 'result', is_error: false },
+    ]
+    const { service, allowed } = makeFakeService(script)
+
+    let text = ''
+    await createClaudeTurnPort('mod-sess', service, { autoAllowTools: true })('prompt', 'discuss', (e) => {
+      if (e.kind === 'text') text += e.text
+    })
+
+    expect(allowed).toEqual(['req-1'])
+    expect(text).toBe('{"nextSpeaker":"claude"}')
+  })
+
+  test('without autoAllowTools a can_use_tool gate is ignored (no auto-response)', async () => {
+    const script = [
+      { type: 'control_request', request_id: 'req-9', request: { subtype: 'can_use_tool', tool_name: 'Read' } },
+      { type: 'result', is_error: false },
+    ]
+    const { service, allowed } = makeFakeService(script)
+    await createClaudeTurnPort('part-sess', service)('prompt', 'discuss', () => {})
+    expect(allowed).toEqual([])
   })
 
   test('resolves and cleans up on an error result (is_error)', async () => {

@@ -45,9 +45,16 @@ describe('CodexParticipant', () => {
     const argvs: string[][] = []
     await collect(new CodexParticipant(stubSpawn('', argvs)).send(createTranscript(), 'discuss'))
     await collect(new CodexParticipant(stubSpawn('', argvs)).send(createTranscript(), 'act'))
-    expect(argvs[0].join(' ')).toContain('read-only')
+    expect(argvs[0].join(' ')).toContain('--sandbox read-only')
     expect(argvs[1].join(' ')).not.toContain('read-only')
+    // act must explicitly request workspace-write; codex exec defaults to
+    // read-only, so omitting the flag would leave an authorized codex unable to write.
+    expect(argvs[1].join(' ')).toContain('--sandbox workspace-write')
     expect(argvs[0].join(' ')).toContain('--json')
     expect(argvs[1].join(' ')).toContain('--json')
+    // Both modes must skip the git-repo check so codex runs in an arbitrary
+    // picked folder (the roundtable cwd is not necessarily a git repo).
+    expect(argvs[0].join(' ')).toContain('--skip-git-repo-check')
+    expect(argvs[1].join(' ')).toContain('--skip-git-repo-check')
   })
 })

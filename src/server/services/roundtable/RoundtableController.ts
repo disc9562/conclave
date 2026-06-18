@@ -15,7 +15,7 @@ export type RoundtableControllerDeps = {
   // sessionId is supplied per-start() from the live WS connection so the
   // Claude participant/moderator turn ports bind to the REAL session that the
   // conversation service knows about (a literal placeholder silently no-ops).
-  buildParticipants: (sessionId: string) => Map<ParticipantId, Participant>
+  buildParticipants: (sessionId: string) => Map<ParticipantId, Participant> | Promise<Map<ParticipantId, Participant>>
   buildModerator: (sessionId: string, ids: ParticipantId[]) => Moderator
   now: () => number
   maxRounds: number
@@ -31,7 +31,7 @@ export class RoundtableController {
     modes: CliModes,
     emit: (msg: RoundtableServerEvent) => void,
   ): Promise<void> {
-    const participants = this.deps.buildParticipants(sessionId)
+    const participants = await this.deps.buildParticipants(sessionId)
     const ids = [...participants.keys()]
     const moderator = this.deps.buildModerator(sessionId, ids)
     // Authorize each live participant from `modes`; unlisted ids stay discuss-only.

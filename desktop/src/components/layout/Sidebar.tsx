@@ -311,7 +311,20 @@ export function Sidebar({ isMobile = false, onRequestClose }: SidebarProps) {
 
   const openRoundtableTab = useCallback(async () => {
     try {
-      const sessionId = await useSessionStore.getState().createSession()
+      // Bind the roundtable to a chosen folder up front so act-mode writes
+      // (claude/codex/grok) stay inside it, not the home dir or the sidecar cwd.
+      let workDir: string | undefined
+      if (isTauri) {
+        const { open } = await import('@tauri-apps/plugin-dialog')
+        const selected = await open({
+          directory: true,
+          multiple: false,
+          title: t('sidebar.useExistingFolder'),
+        })
+        if (typeof selected !== 'string' || !selected.trim()) return // cancelled → no roundtable
+        workDir = selected
+      }
+      const sessionId = await useSessionStore.getState().createSession(workDir)
       setRoundtableSessionIds((prev) => {
         const next = new Set(prev).add(sessionId)
         try {

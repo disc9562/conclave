@@ -109,18 +109,23 @@ export const useRoundtableStore = create<RoundtableStore>((set, get) => ({
       return { sessions: { ...state.sessions, [sessionId]: reduceRoundtableEvent(current, event) } }
     }),
   startRoundtable: (sessionId, content, modes) => {
-    set((state) => ({
-      sessions: {
-        ...state.sessions,
-        [sessionId]: {
-          ...emptyRoundtableSession(),
-          status: 'running',
-          // Echo the user's question so the thread reads "you asked → claude → codex".
-          entries: [{ id: 'rt-user-0', kind: 'user', text: content }],
-          seq: 1,
+    set((state) => {
+      const current = state.sessions[sessionId] ?? emptyRoundtableSession()
+      return {
+        sessions: {
+          ...state.sessions,
+          [sessionId]: {
+            ...current,
+            status: 'running',
+            activeSpeaker: null,
+            // Append the new question below prior rounds instead of wiping the
+            // thread — each Start adds to the running record. seq keeps ids unique.
+            entries: [...current.entries, { id: `rt-user-${current.seq}`, kind: 'user', text: content }],
+            seq: current.seq + 1,
+          },
         },
-      },
-    }))
+      }
+    })
     wsManager.send(sessionId, { type: 'roundtable_start', content, modes })
   },
   stopRoundtable: (sessionId) => {

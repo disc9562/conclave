@@ -49,14 +49,30 @@ function roundtableModeratorSessionId(sessionId: string): string {
 }
 
 const roundtableController = new RoundtableController({
-  buildParticipants: (sessionId) => new Map([
-    ['claude', new ClaudeParticipant(createClaudeTurnPort(sessionId))],
-    ['codex', new CodexParticipant((argv) => Bun.spawn(argv, { stdout: 'pipe' }))],
-    ['grok', new GrokParticipant((argv) => Bun.spawn(argv, { stdout: 'pipe' }))],
-  ]),
+  buildParticipants: async (sessionId) => {
+    // Pin codex/grok to the session's chosen folder so act-mode writes land there
+    // instead of the sidecar's cwd. (claude already inherits workDir via conversationService.)
+    const cwd = await resolveSessionWorkDir(sessionId)
+    return new Map([
+      ['claude', new ClaudeParticipant(createClaudeTurnPort(sessionId))],
+      ['codex', new CodexParticipant((argv) => Bun.spawn(argv, { cwd, stdout: 'pipe' }))],
+      ['grok', new GrokParticipant((argv) => Bun.spawn(argv, { cwd, stdout: 'pipe' }))],
+    ])
+  },
   buildModerator: (sessionId, ids) => new Moderator(async (prompt) => {
     let acc = ''
-    await createClaudeTurnPort(roundtableModeratorSessionId(sessionId))(prompt, 'discuss', (e) => { if (e.kind === 'text') acc += e.text })
+    const turn = createClaudeTurnPort(roundtableModeratorSessionId(sessionId), undefined, { autoAllowTools: true })(
+      prompt, 'discuss', (e) => { if (e.kind === 'text') acc += e.text },
+    )
+    // ponytail: 90s ceiling so a stuck moderator turn ends the roundtable
+    // gracefully (decide() falls back to "done" on throw) instead of freezing
+    // the whole app, which is what happened when its can_use_tool gate hung.
+    await Promise.race([
+      turn,
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('moderator turn timeout')), 90_000),
+      ),
+    ])
     return acc
   }, ids),
   now: () => Date.now(),

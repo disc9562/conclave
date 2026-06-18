@@ -34,38 +34,43 @@ describe('RoundtablePage', () => {
     expect(screen.getByText(/codex not logged in/)).toBeTruthy()
   })
 
-  it('sends discuss modes by default when starting', () => {
+  it('Start opens the approval dialog; declining sends all-discuss', () => {
     const startRoundtable = vi.fn()
     useRoundtableStore.setState({ startRoundtable } as never)
     render(<RoundtablePage sessionId={SID} />)
     fireEvent.change(screen.getByPlaceholderText(/ask the round table/i), {
       target: { value: 'What is 2+2?' },
     })
+    // Start no longer sends directly — it opens the approval dialog.
     fireEvent.click(screen.getByRole('button', { name: /start/i }))
+    expect(startRoundtable).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: '只討論' }))
     expect(startRoundtable).toHaveBeenCalledWith(SID, 'What is 2+2?', {
       claude: 'discuss',
       codex: 'discuss',
+      grok: 'discuss',
     })
   })
 
-  it('unlocking claude sends act for claude only', () => {
+  it('approving writes sends all-act', () => {
     const startRoundtable = vi.fn()
     useRoundtableStore.setState({ startRoundtable } as never)
     render(<RoundtablePage sessionId={SID} />)
-    fireEvent.click(screen.getByRole('button', { name: /toggle claude/i }))
     fireEvent.change(screen.getByPlaceholderText(/ask the round table/i), {
       target: { value: 'edit the file' },
     })
     fireEvent.click(screen.getByRole('button', { name: /start/i }))
+    fireEvent.click(screen.getByRole('button', { name: '允許寫檔' }))
     expect(startRoundtable).toHaveBeenCalledWith(SID, 'edit the file', {
       claude: 'act',
-      codex: 'discuss',
+      codex: 'act',
+      grok: 'act',
     })
   })
 
-  it('codex act toggle is disabled', () => {
+  it('Start with empty input does not open the approval dialog', () => {
     render(<RoundtablePage sessionId={SID} />)
-    const codexToggle = screen.getByRole('button', { name: /toggle codex/i })
-    expect(codexToggle.hasAttribute('disabled')).toBe(true)
+    // Start button is disabled with empty input, and no dialog is present.
+    expect(screen.queryByRole('button', { name: '允許寫檔' })).toBeNull()
   })
 })
