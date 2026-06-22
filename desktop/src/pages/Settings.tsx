@@ -20,6 +20,7 @@ import { PluginDetail } from '../components/plugins/PluginDetail'
 import { ComputerUseSettings } from './ComputerUseSettings'
 import { H5AccessSettings } from '../components/settings/H5AccessSettings'
 import { McpSettings } from './McpSettings'
+import { AgentToolsSettings } from './AgentToolsSettings'
 import { TerminalSettings } from './TerminalSettings'
 import { DiagnosticsSettings } from './DiagnosticsSettings'
 import { ActivitySettings } from './ActivitySettings'
@@ -82,6 +83,7 @@ export function Settings() {
             {/* <TabButton icon="chat" label={t('settings.tab.adapters')} active={activeTab === 'adapters'} onClick={() => setActiveTab('adapters')} /> */}
             <TabButton icon="terminal" label={t('settings.tab.terminal')} active={activeTab === 'terminal'} onClick={() => setActiveTab('terminal')} />
             <TabButton icon="dns" label={t('settings.tab.mcp')} active={activeTab === 'mcp'} onClick={() => setActiveTab('mcp')} />
+            <TabButton icon="handyman" label={t('settings.tab.agentTools')} active={activeTab === 'agentTools'} onClick={() => setActiveTab('agentTools')} />
             <TabButton icon="smart_toy" label={t('settings.tab.agents')} active={activeTab === 'agents'} onClick={() => setActiveTab('agents')} />
             <TabButton icon="auto_awesome" label={t('settings.tab.skills')} active={activeTab === 'skills'} onClick={() => setActiveTab('skills')} />
             <TabButton icon="history_edu" label={t('settings.tab.memory')} active={activeTab === 'memory'} onClick={() => setActiveTab('memory')} />
@@ -106,6 +108,7 @@ export function Settings() {
             {activeTab === 'adapters' && <AdapterSettings />}
             {activeTab === 'terminal' && <TerminalSettings showPreferences />}
             {activeTab === 'mcp' && <McpSettings />}
+            {activeTab === 'agentTools' && <AgentToolsSettings />}
             {activeTab === 'agents' && <AgentsSettings />}
             {activeTab === 'skills' && <SkillSettings />}
             {activeTab === 'memory' && <MemorySettings />}

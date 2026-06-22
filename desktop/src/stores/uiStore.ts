@@ -53,6 +53,7 @@ export type SettingsTab =
   | 'adapters'
   | 'terminal'
   | 'mcp'
+  | 'agentTools'
   | 'agents'
   | 'skills'
   | 'memory'

@@ -149,6 +149,8 @@ export const en = {
   'settings.tab.terminal': 'Terminal',
   'settings.tab.skills': 'Skills',
   'settings.tab.mcp': 'MCP',
+  'settings.tab.agentTools': 'Agent Tools',
+  'agentTools.cliMissing': '{{tool}} CLI not detected',
   'settings.tab.plugins': 'Plugins',
   'settings.tab.diagnostics': 'Diagnostics',
 
