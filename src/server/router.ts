@@ -20,6 +20,7 @@ import { handleComputerUseApi } from './api/computer-use.js'
 import { handleHahaOAuthApi } from './api/haha-oauth.js'
 import { handleHahaOpenAIOAuthApi } from './api/haha-openai-oauth.js'
 import { handleMcpApi } from './api/mcp.js'
+import { handleAgentToolsApi } from './api/agentTools.js'
 import { handleDiagnosticsApi } from './api/diagnostics.js'
 import { handleDoctorApi } from './api/doctor.js'
 import { handleH5AccessApi } from './api/h5-access.js'
@@ -91,6 +92,9 @@ export async function handleApiRequest(req: Request, url: URL): Promise<Response
 
     case 'mcp':
       return handleMcpApi(req, url, segments)
+
+    case 'agent-tools':
+      return handleAgentToolsApi(req, url, segments)
 
     case 'plugins':
       return handlePluginsApi(req, url, segments)
