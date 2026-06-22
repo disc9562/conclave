@@ -1,5 +1,5 @@
 import type { Participant } from './Participant.js'
-import type { Moderator } from './Moderator.js'
+import type { ModeratorLike } from './Moderator.js'
 import type {
   CapabilityMode,
   ParticipantId,
@@ -21,7 +21,7 @@ export type RoundtableEvent =
 
 export type RoundtableConfig = {
   participants: Map<ParticipantId, Participant>
-  moderator: Moderator
+  moderator: ModeratorLike
   modes: Map<ParticipantId, CapabilityMode>
   maxRounds: number
 }
@@ -38,17 +38,27 @@ export class RoundtableOrchestrator {
   ): Promise<SharedTranscript> {
     let transcript = initial
     let rounds = 0
+    const spoken = new Set<ParticipantId>()
+    // First participant in the roster is the default opener (the planner role).
+    const opener = this.config.participants.keys().next().value as ParticipantId | undefined
 
     while (rounds < this.config.maxRounds) {
       if (signal?.aborted) return transcript
 
       const decision = await this.config.moderator.decide(transcript)
-      if (decision.nextSpeaker === 'done') {
+      let next = decision.nextSpeaker
+      // The lightweight moderator sometimes answers "done" before anyone has
+      // spoken, dismissing short/follow-up messages so the user gets NO reply.
+      // Never end a round with zero contributions: force the opener to speak.
+      if (next === 'done' && spoken.size === 0 && opener) {
+        next = opener
+      }
+      if (next === 'done') {
         emit({ kind: 'complete' })
         return transcript
       }
 
-      const author = decision.nextSpeaker
+      const author = next
       const participant = this.config.participants.get(author)
       if (!participant) {
         emit({ kind: 'participant-error', author, error: 'no such participant' })
@@ -90,6 +100,7 @@ export class RoundtableOrchestrator {
         timestamp: rounds,
       }
       transcript = appendEntry(transcript, entry)
+      spoken.add(author)
       emit({ kind: 'speaker-end', author })
       rounds += 1
     }

@@ -192,6 +192,19 @@ export const useTabStore = create<TabStore>((set, get) => ({
         return
       }
 
+      // Authoritative roundtable record (written by Sidebar). Old tabs had their
+      // persisted type clobbered to 'session' by earlier saveTabs runs, which made
+      // them restore as normal chat (no codex/grok replies). This set is intact
+      // across restarts, so it heals those tabs back to 'roundtable'.
+      let roundtableIds = new Set<string>()
+      try {
+        const rawRt = localStorage.getItem('dreamcoder-roundtable-sessions')
+        if (rawRt) {
+          const parsed = JSON.parse(rawRt)
+          if (Array.isArray(parsed)) roundtableIds = new Set(parsed.filter((v): v is string => typeof v === 'string'))
+        }
+      } catch { /* noop */ }
+
       memLog('restoreTabs:start')
       const { sessions } = await sessionsApi.list({ limit: 200 })
       memLog(`restoreTabs:after-list (got ${sessions.length} sessions)`)
@@ -212,7 +225,11 @@ export const useTabStore = create<TabStore>((set, get) => ({
           return {
             sessionId: t.sessionId,
             title: sessions.find((s) => s.id === t.sessionId)?.title || t.title,
-            type: 'session' as const,
+            // Preserve roundtable tabs — hardcoding 'session' here turned a
+            // restored roundtable into a normal chat, so input went through the
+            // single-Claude path (fast) instead of the 3-way roundtable.
+            // Fall back to the authoritative roundtable set to heal old tabs.
+            type: (t.type === 'roundtable' || roundtableIds.has(t.sessionId)) ? ('roundtable' as const) : ('session' as const),
             status: 'idle' as const,
           }
         })

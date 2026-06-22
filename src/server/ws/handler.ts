@@ -31,22 +31,11 @@ import { RoundtableController } from '../services/roundtable/RoundtableControlle
 import { ClaudeParticipant } from '../services/roundtable/ClaudeParticipant.js'
 import { CodexParticipant } from '../services/roundtable/CodexParticipant.js'
 import { GrokParticipant } from '../services/roundtable/GrokParticipant.js'
-import { Moderator } from '../services/roundtable/Moderator.js'
+import { RotationModerator } from '../services/roundtable/Moderator.js'
 import { createClaudeTurnPort } from '../services/roundtable/createClaudeTurnPort.js'
 
 const settingsService = new SettingsService()
 const providerService = new ProviderService()
-
-// The moderator runs on its OWN derived CLI session so its decision prompts and
-// JSON replies never enter the user-visible Claude discussion conversation (and
-// the discussion never confuses the moderator). Suffix uses only [0-9a-zA-Z_-]
-// to satisfy the /sdk/<id> route's id validation; base ids are UUIDs (36 chars)
-// so total stays well under the 64-char limit.
-// ponytail: collision only if a real base id literally ends with '__moderator'.
-const MODERATOR_SESSION_SUFFIX = '__moderator'
-function roundtableModeratorSessionId(sessionId: string): string {
-  return `${sessionId}${MODERATOR_SESSION_SUFFIX}`
-}
 
 const roundtableController = new RoundtableController({
   buildParticipants: async (sessionId) => {
@@ -59,22 +48,11 @@ const roundtableController = new RoundtableController({
       ['grok', new GrokParticipant((argv) => Bun.spawn(argv, { cwd, stdout: 'pipe' }))],
     ])
   },
-  buildModerator: (sessionId, ids) => new Moderator(async (prompt) => {
-    let acc = ''
-    const turn = createClaudeTurnPort(roundtableModeratorSessionId(sessionId), undefined, { autoAllowTools: true })(
-      prompt, 'discuss', (e) => { if (e.kind === 'text') acc += e.text },
-    )
-    // ponytail: 90s ceiling so a stuck moderator turn ends the roundtable
-    // gracefully (decide() falls back to "done" on throw) instead of freezing
-    // the whole app, which is what happened when its can_use_tool gate hung.
-    await Promise.race([
-      turn,
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('moderator turn timeout')), 90_000),
-      ),
-    ])
-    return acc
-  }, ids),
+  // Fixed rotation (claude → codex → grok → done) instead of an LLM moderator.
+  // The old moderator ran a full Claude turn — on its own spawned CLI session —
+  // before EVERY contribution, which was the roundtable's main latency tax.
+  // The roster order from buildParticipants is the planner→dev→reviewer pipeline.
+  buildModerator: (_sessionId, ids) => new RotationModerator(ids),
   now: () => Date.now(),
   maxRounds: 12,
 })
@@ -249,11 +227,9 @@ export const handleWebSocket = {
 
         case 'roundtable_start': {
           const { sessionId } = ws.data
-          const moderatorSessionId = roundtableModeratorSessionId(sessionId)
           void (async () => {
             try {
               await ensureCliSessionStarted(ws, sessionId, 'roundtable_start')
-              await ensureCliSessionStarted(ws, moderatorSessionId, 'roundtable_start')
               await roundtableController.start(
                 sessionId,
                 message.content,
@@ -262,11 +238,6 @@ export const handleWebSocket = {
               )
             } catch (err) {
               console.error(`[WS] Unhandled error in roundtable start:`, err)
-            } finally {
-              // Moderator session is only needed for the duration of the run;
-              // stop it here so each roundtable doesn't leak a CLI subprocess.
-              conversationService.stopSession(moderatorSessionId)
-              cleanupSessionRuntimeState(moderatorSessionId)
             }
           })()
           break
@@ -274,6 +245,11 @@ export const handleWebSocket = {
 
         case 'roundtable_stop':
           roundtableController.stop(ws.data.sessionId)
+          // Aborting the orchestrator loop leaves the in-flight Claude turn
+          // still generating on the main session, so the session stays busy and
+          // the NEXT roundtable_start's sendMessage gets no response. Interrupt
+          // the live turn to free the session for the next round.
+          conversationService.sendInterrupt(ws.data.sessionId)
           break
 
         case 'prewarm_session':
@@ -982,14 +958,9 @@ function bindPrewarmMetadataCapture(sessionId: string) {
 }
 
 async function resolveSessionWorkDir(sessionId: string, fallback = os.homedir()): Promise<string> {
-  // The moderator's derived session id isn't in sessionService; resolve its
-  // workDir from the real base session so it launches in the same project.
-  const lookupId = sessionId.endsWith(MODERATOR_SESSION_SUFFIX)
-    ? sessionId.slice(0, -MODERATOR_SESSION_SUFFIX.length)
-    : sessionId
   let workDir = fallback
   try {
-    const resolved = await sessionService.getSessionWorkDir(lookupId)
+    const resolved = await sessionService.getSessionWorkDir(sessionId)
     if (resolved) workDir = resolved
     console.log(
       `[WS] resolveSessionWorkDir: sessionId=${sessionId}, resolved workDir=${JSON.stringify(

@@ -1,6 +1,19 @@
 import { describe, it, expect } from 'vitest'
-import { reduceRoundtableEvent, emptyRoundtableSession } from './roundtableStore'
+import { reduceRoundtableEvent, emptyRoundtableSession, normalizeRehydrated } from './roundtableStore'
 import type { RoundtableEvent } from '../types/chat'
+
+describe('normalizeRehydrated', () => {
+  it('resets a persisted running session to complete, keeps entries', () => {
+    const out = normalizeRehydrated({
+      s1: { entries: [{ id: 'x', kind: 'user', text: 'hi' }], status: 'running', seq: 1, activeSpeaker: 'codex' },
+      s2: { entries: [], status: 'complete', seq: 0, activeSpeaker: null },
+    })
+    expect(out.s1.status).toBe('complete')
+    expect(out.s1.activeSpeaker).toBe(null)
+    expect(out.s1.entries).toHaveLength(1)
+    expect(out.s2.status).toBe('complete')
+  })
+})
 
 function run(events: RoundtableEvent[]) {
   return events.reduce((s, e) => reduceRoundtableEvent(s, e), emptyRoundtableSession())

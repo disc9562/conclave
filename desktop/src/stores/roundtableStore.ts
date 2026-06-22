@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import { wsManager } from '../api/websocket'
 import type {
   RoundtableEvent,
@@ -87,6 +88,19 @@ export function reduceRoundtableEvent(
   return next
 }
 
+// A persisted 'running' status is stale after a reload — the process that was
+// streaming is gone, so nothing is actually active. Reset it so the UI shows the
+// Start button instead of a frozen "Running…".
+export function normalizeRehydrated(
+  sessions: Record<string, RoundtableSessionState>,
+): Record<string, RoundtableSessionState> {
+  const out: Record<string, RoundtableSessionState> = {}
+  for (const [k, s] of Object.entries(sessions)) {
+    out[k] = s.status === 'running' ? { ...s, status: 'complete', activeSpeaker: null } : s
+  }
+  return out
+}
+
 type RoundtableStore = {
   sessions: Record<string, RoundtableSessionState>
   getSession: (sessionId: string) => RoundtableSessionState
@@ -100,7 +114,9 @@ type RoundtableStore = {
   resetSession: (sessionId: string) => void
 }
 
-export const useRoundtableStore = create<RoundtableStore>((set, get) => ({
+export const useRoundtableStore = create<RoundtableStore>()(
+  persist(
+    (set, get) => ({
   sessions: {},
   getSession: (sessionId) => get().sessions[sessionId] ?? emptyRoundtableSession(),
   applyEvent: (sessionId, event) =>
@@ -139,4 +155,17 @@ export const useRoundtableStore = create<RoundtableStore>((set, get) => ({
     set((state) => ({
       sessions: { ...state.sessions, [sessionId]: emptyRoundtableSession() },
     })),
-}))
+    }),
+    {
+      // ponytail: persist the whole transcript to localStorage so reconnecting a
+      // session keeps its roundtable history. If transcripts ever get large
+      // enough to blow the localStorage quota, move this to the backend store.
+      name: 'dreamcoder-roundtable-history',
+      partialize: (s) => ({ sessions: s.sessions }),
+      merge: (persisted, current) => {
+        const p = persisted as { sessions?: Record<string, RoundtableSessionState> } | undefined
+        return { ...current, sessions: normalizeRehydrated(p?.sessions ?? {}) }
+      },
+    },
+  ),
+)

@@ -98,7 +98,11 @@ export function AppShell() {
           if (cancelled) return
           const { activeTabId: activeId, tabs } = useTabStore.getState()
           const activeTab = tabs.find((tab) => tab.sessionId === activeId)
-          if (activeId && activeTab?.type === 'session') {
+          // Roundtable tabs ride the same WS session as a normal chat, and the
+          // roundtable_event handler is only registered by connectToSession — so
+          // a restored roundtable that isn't connected here looks alive but never
+          // receives any reply. Connect both tab types.
+          if (activeId && (activeTab?.type === 'session' || activeTab?.type === 'roundtable')) {
             useChatStore.getState().connectToSession(activeId)
           }
         })().catch(() => {})

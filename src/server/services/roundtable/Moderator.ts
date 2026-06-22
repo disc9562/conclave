@@ -4,6 +4,25 @@ import { renderTranscriptForPrompt } from './promptRenderer.js'
 
 export type CompletionPort = (prompt: string) => Promise<string>
 
+// The orchestrator only calls decide(); anything with this shape can route.
+export interface ModeratorLike {
+  decide(transcript: SharedTranscript): Promise<ModeratorDecision>
+}
+
+// Deterministic moderator: walks the roster once in order (planner → dev →
+// reviewer), then "done". No LLM call and no subprocess — this is what removes
+// the per-turn moderator latency. One instance per run, so the index is
+// per-roundtable state; it advances every decide() call so a failing
+// participant can't trap the loop (the orchestrator just moves to the next id).
+export class RotationModerator implements ModeratorLike {
+  private i = 0
+  constructor(private readonly order: ParticipantId[]) {}
+  async decide(): Promise<ModeratorDecision> {
+    if (this.i >= this.order.length) return { nextSpeaker: 'done' }
+    return { nextSpeaker: this.order[this.i++]! }
+  }
+}
+
 export class Moderator {
   constructor(
     private readonly complete: CompletionPort,

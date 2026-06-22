@@ -1,7 +1,7 @@
 import { RoundtableOrchestrator } from './RoundtableOrchestrator.js'
 import type { RoundtableEvent } from './RoundtableOrchestrator.js'
 import type { Participant } from './Participant.js'
-import type { Moderator } from './Moderator.js'
+import type { ModeratorLike } from './Moderator.js'
 import type { CapabilityMode, ParticipantId } from './types.js'
 import { createTranscript, appendEntry } from './transcript.js'
 
@@ -16,7 +16,7 @@ export type RoundtableControllerDeps = {
   // Claude participant/moderator turn ports bind to the REAL session that the
   // conversation service knows about (a literal placeholder silently no-ops).
   buildParticipants: (sessionId: string) => Map<ParticipantId, Participant> | Promise<Map<ParticipantId, Participant>>
-  buildModerator: (sessionId: string, ids: ParticipantId[]) => Moderator
+  buildModerator: (sessionId: string, ids: ParticipantId[]) => ModeratorLike
   now: () => number
   maxRounds: number
 }
