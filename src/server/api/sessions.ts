@@ -776,6 +776,9 @@ async function branchSession(req: Request, sessionId: string): Promise<Response>
       sourceRepository: launchInfo.repository,
       sourceWorktreeSession: launchInfo.worktreeSession,
     })
+    // Branching writes a new session file outside SessionService, so the list
+    // cache won't otherwise see it until the TTL expires.
+    sessionService.invalidateListCache()
 
     return Response.json({
       sessionId: result.sessionId,

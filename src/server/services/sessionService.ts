@@ -230,11 +230,63 @@ const NO_RESPONSE_REQUESTED_TEXT = 'No response requested.'
 const TASK_NOTIFICATION_RE = /^<task-notification>\s*[\s\S]*<\/task-notification>$/i
 const TASK_NOTIFICATION_BLOCK_RE = /<task-notification>\s*[\s\S]*?<\/task-notification>/i
 
+// ponytail: bounded-concurrency map. Listing 1000+ sessions used to fan out one
+// fs.stat / file stream PER session at once; the native buffers spiked RSS to
+// ~280MB and the allocator never returned it to the OS (heapUsed stayed ~40MB —
+// it was off-heap, not a JS leak). Capping in-flight ops holds the high-water
+// mark down. See issue #25. Results stay in input order.
+async function mapLimit<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length)
+  let next = 0
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++
+      results[i] = await fn(items[i], i)
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+  return results
+}
+
+// stat is cheap (no buffers); file streams each reserve native read buffers, so
+// they get a tighter cap.
+const STAT_CONCURRENCY = 64
+const SCAN_CONCURRENCY = 16
+
+type StatedSessionFile = {
+  filePath: string
+  projectDir: string
+  sessionId: string
+  stat: Awaited<ReturnType<typeof fs.stat>>
+}
+
+// ponytail: the discover+stat+sort sweep runs over ALL ~1000 session files on
+// every listSessions call (needed for the global mtime sort) regardless of page
+// size — that volume-invariant churn, not the page scan, drives the RSS spike
+// (issue #25). Memo it briefly; mutations (create/delete) clear it so new/removed
+// sessions show at once. Ceiling: mtime-order changes from appends, and sessions
+// created/deleted by the CLI outside this process, appear after ≤TTL.
+const LIST_CACHE_TTL_MS = 3000
+
 // ============================================================================
 // Service
 // ============================================================================
 
 export class SessionService {
+  // Keyed by project filter; the `project:` prefix can't collide with the
+  // unfiltered 'all' key even if a real filter value is literally "all".
+  private listCache = new Map<string, { expires: number; files: StatedSessionFile[] }>()
+
+  // Public so out-of-service writers (e.g. session branching) can drop the cache
+  // after creating a session file. In-service create/delete paths call it too.
+  invalidateListCache(): void {
+    this.listCache.clear()
+  }
+
   // --------------------------------------------------------------------------
   // Config helpers
   // --------------------------------------------------------------------------
@@ -1354,19 +1406,27 @@ export class SessionService {
   }): Promise<{ sessions: SessionListItem[]; total: number }> {
     const mem0 = process.memoryUsage()
     console.log(`[mem:sidecar] listSessions:start rss=${(mem0.rss/1024/1024).toFixed(1)}MB heapUsed=${(mem0.heapUsed/1024/1024).toFixed(1)}MB`)
-    const sessionFiles = await this.discoverSessionFiles(options?.project)
-    const filesWithStats = (await Promise.all(sessionFiles.map(async (sessionFile) => {
-      try {
-        return {
-          ...sessionFile,
-          stat: await fs.stat(sessionFile.filePath),
+    const cacheKey = options?.project === undefined ? 'all' : `project:${options.project}`
+    const cached = this.listCache.get(cacheKey)
+    let filesWithStats: StatedSessionFile[]
+    if (cached && cached.expires > Date.now()) {
+      filesWithStats = cached.files
+    } else {
+      const sessionFiles = await this.discoverSessionFiles(options?.project)
+      filesWithStats = (await mapLimit(sessionFiles, STAT_CONCURRENCY, async (sessionFile) => {
+        try {
+          return {
+            ...sessionFile,
+            stat: await fs.stat(sessionFile.filePath),
+          }
+        } catch {
+          return null
         }
-      } catch {
-        return null
-      }
-    }))).filter((item): item is NonNullable<typeof item> => item !== null)
+      })).filter((item): item is StatedSessionFile => item !== null)
 
-    filesWithStats.sort((a, b) => b.stat.mtime.getTime() - a.stat.mtime.getTime())
+      filesWithStats.sort((a, b) => b.stat.mtime.getTime() - a.stat.mtime.getTime())
+      this.listCache.set(cacheKey, { expires: Date.now() + LIST_CACHE_TTL_MS, files: filesWithStats })
+    }
 
     const total = filesWithStats.length
     const offset = options?.offset ?? 0
@@ -1374,7 +1434,7 @@ export class SessionService {
     const paginatedFiles = filesWithStats.slice(offset, offset + limit)
 
     // Build session list items with metadata from file head/tail only (avoid loading full files)
-    const items = (await Promise.all(paginatedFiles.map(async ({ filePath, projectDir, sessionId, stat }) => {
+    const items = (await mapLimit(paginatedFiles, SCAN_CONCURRENCY, async ({ filePath, projectDir, sessionId, stat }) => {
       try {
         const { entries: headEntries, messageCount } = await this.scanSessionFileHead(filePath, 100, 100)
         const workDir = this.resolveWorkDirFromEntries(headEntries, projectDir)
@@ -1407,7 +1467,7 @@ export class SessionService {
         // Skip unreadable files
         return null
       }
-    }))).filter((item): item is SessionListItem => item !== null)
+    })).filter((item): item is SessionListItem => item !== null)
 
     const mem1 = process.memoryUsage()
     console.log(`[mem:sidecar] listSessions:done total=${total} returned=${items.length} rss=${(mem1.rss/1024/1024).toFixed(1)}MB heapUsed=${(mem1.heapUsed/1024/1024).toFixed(1)}MB`)
@@ -1539,6 +1599,7 @@ export class SessionService {
     }
 
     await fs.writeFile(filePath, JSON.stringify(initialEntry) + '\n' + JSON.stringify(metaEntry) + '\n', 'utf-8')
+    this.invalidateListCache()
 
     return { sessionId, workDir: absWorkDir }
   }
@@ -1553,6 +1614,7 @@ export class SessionService {
     }
 
     await fs.unlink(found.filePath)
+    this.invalidateListCache()
   }
 
   async deleteSessions(sessionIds: string[]): Promise<DeleteSessionsResult> {
@@ -1698,6 +1760,7 @@ export class SessionService {
     const found = await this.findSessionFile(sessionId)
     if (!found) return
     await fs.unlink(found.filePath)
+    this.invalidateListCache()
   }
 
   async clearSessionTranscript(sessionId: string, fallbackWorkDir?: string): Promise<void> {
@@ -1745,6 +1808,7 @@ export class SessionService {
       `${JSON.stringify(initialEntry)}\n${JSON.stringify(metaEntry)}\n`,
       'utf-8',
     )
+    this.invalidateListCache()
   }
 
   async appendSessionMetadata(
@@ -1789,6 +1853,8 @@ export class SessionService {
         timestamp: new Date().toISOString(),
       })
     }
+    // May materialize a new top-level session file at a different project dir.
+    this.invalidateListCache()
   }
 
   async deletePlaceholderSessionFiles(
@@ -1820,6 +1886,7 @@ export class SessionService {
       await fs.rm(filePath, { force: true })
       removed += 1
     }
+    if (removed > 0) this.invalidateListCache()
     return removed
   }
 

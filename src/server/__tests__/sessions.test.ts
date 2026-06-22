@@ -569,6 +569,23 @@ describe('SessionService', () => {
     expect(readCount).toBe(3)
   })
 
+  it('serves the listing from a short-lived cache yet invalidates on delete', async () => {
+    const idA = 'cccccccc-1111-2222-3333-444444444444'
+    const idB = 'cccccccc-5555-6666-7777-888888888888'
+    await writeSessionFile('-tmp-cache', idA, [makeSnapshotEntry(), makeUserEntry('a')])
+    await writeSessionFile('-tmp-cache', idB, [makeSnapshotEntry(), makeUserEntry('b')])
+
+    const first = await service.listSessions()
+    expect(first.total).toBe(2)
+
+    // deleteSession must clear the list cache, so the removal shows up on the
+    // next list immediately rather than after the TTL window.
+    await service.deleteSession(idB)
+    const afterDelete = await service.listSessions()
+    expect(afterDelete.total).toBe(1)
+    expect(afterDelete.sessions.map((s) => s.id)).toEqual([idA])
+  })
+
   it('should filter sessions by project', async () => {
     const id1 = 'aaaaaaaa-1111-cccc-dddd-eeeeeeeeeeee'
     const id2 = 'aaaaaaaa-2222-cccc-dddd-eeeeeeeeeeee'
