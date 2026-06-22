@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { agentToolsApi, type CodexData, type GrokData, type ToolItem } from '../api/agentTools'
+import { useUIStore } from './uiStore'
 
 type Tool = 'codex' | 'grok'
 type Kind = 'mcp' | 'features' | 'plugins'
@@ -46,7 +47,9 @@ export const useAgentToolsStore = create<State>((set, get) => ({
       const fresh = await agentToolsApi.toggle({ tool, kind, name, enabled })
       set({ [key]: fresh } as any)
     } catch (e) {
-      set({ [key]: prev, error: e instanceof Error ? e.message : String(e) } as any) // revert
+      const message = e instanceof Error ? e.message : String(e)
+      set({ [key]: prev, error: message } as any) // revert
+      useUIStore.getState().addToast({ type: 'error', message })
     }
   },
 }))
