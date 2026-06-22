@@ -152,7 +152,7 @@ export const zh: Record<TranslationKey, string> = {
   'settings.tab.skills': '技能',
   'settings.tab.mcp': 'MCP',
   'settings.tab.agentTools': 'Agent 工具',
-  'agentTools.cliMissing': '未偵測到 {{tool}} CLI',
+  'agentTools.cliMissing': '未偵測到 {tool} CLI',
   'settings.tab.plugins': '插件',
   'settings.tab.diagnostics': '诊断',
 
