@@ -49,7 +49,7 @@ describe('RoundtablePage', () => {
       claude: 'discuss',
       codex: 'discuss',
       grok: 'discuss',
-    })
+    }, false)
   })
 
   it('approving writes sends all-act', () => {
@@ -65,7 +65,20 @@ describe('RoundtablePage', () => {
       claude: 'act',
       codex: 'act',
       grok: 'act',
+    }, false)
+  })
+
+  it('循環模式 toggle sends loop=true', () => {
+    const startRoundtable = vi.fn()
+    useRoundtableStore.setState({ startRoundtable } as never)
+    render(<RoundtablePage sessionId={SID} />)
+    fireEvent.click(screen.getByRole('checkbox'))
+    fireEvent.change(screen.getByPlaceholderText(/ask the round table/i), {
+      target: { value: 'build a game' },
     })
+    fireEvent.click(screen.getByRole('button', { name: /start/i }))
+    fireEvent.click(screen.getByRole('button', { name: '只討論' }))
+    expect(startRoundtable).toHaveBeenCalledWith(SID, 'build a game', expect.anything(), true)
   })
 
   it('Start with empty input does not open the approval dialog', () => {

@@ -27,7 +27,7 @@ export type ClientMessage =
     }
   | { type: 'set_permission_mode'; mode: string }
   | { type: 'set_runtime_config'; providerId: string | null; modelId: string }
-  | { type: 'roundtable_start'; content: string; modes: { claude?: 'discuss' | 'act'; codex?: 'discuss' | 'act'; grok?: 'discuss' | 'act' } }
+  | { type: 'roundtable_start'; content: string; modes: { claude?: 'discuss' | 'act'; codex?: 'discuss' | 'act'; grok?: 'discuss' | 'act' }; loop?: boolean }
   | { type: 'roundtable_stop' }
   | { type: 'stop_generation' }
   | { type: 'ping' }

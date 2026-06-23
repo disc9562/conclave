@@ -47,7 +47,7 @@ export type ClientMessage =
   | ({ type: 'set_runtime_config' } & RuntimeSelection)
   | { type: 'stop_generation' }
   | { type: 'ping' }
-  | { type: 'roundtable_start'; content: string; modes: { claude?: RoundtableCapabilityMode; codex?: RoundtableCapabilityMode; grok?: RoundtableCapabilityMode } }
+  | { type: 'roundtable_start'; content: string; modes: { claude?: RoundtableCapabilityMode; codex?: RoundtableCapabilityMode; grok?: RoundtableCapabilityMode }; loop?: boolean }
   | { type: 'roundtable_stop' }
 
 export type AttachmentRef = {

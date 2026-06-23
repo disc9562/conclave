@@ -11,10 +11,10 @@ export type ClaudeTurnPort = (
 
 export class ClaudeParticipant implements Participant {
   readonly id = 'claude' as const
-  constructor(private readonly port: ClaudeTurnPort) {}
+  constructor(private readonly port: ClaudeTurnPort, private readonly instruction?: string) {}
 
   async *send(transcript: SharedTranscript, mode: CapabilityMode): AsyncIterable<ParticipantEvent> {
-    const prompt = renderTranscriptForPrompt(transcript, this.id)
+    const prompt = renderTranscriptForPrompt(transcript, this.id, this.instruction)
     const queue: ParticipantEvent[] = []
     let notify: (() => void) | null = null
     let finished = false

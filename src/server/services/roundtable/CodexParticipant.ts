@@ -47,10 +47,11 @@ export class CodexParticipant implements Participant {
   constructor(
     private readonly spawn: SpawnFn,
     private readonly binPath: string = CODEX_BIN,
+    private readonly instruction?: string,
   ) {}
 
   async *send(transcript: SharedTranscript, mode: CapabilityMode): AsyncIterable<ParticipantEvent> {
-    const prompt = renderTranscriptForPrompt(transcript, this.id)
+    const prompt = renderTranscriptForPrompt(transcript, this.id, this.instruction)
     const argv = [
       this.binPath,
       CODEX_HEADLESS_SUBCMD,

@@ -31,28 +31,42 @@ import { RoundtableController } from '../services/roundtable/RoundtableControlle
 import { ClaudeParticipant } from '../services/roundtable/ClaudeParticipant.js'
 import { CodexParticipant } from '../services/roundtable/CodexParticipant.js'
 import { GrokParticipant } from '../services/roundtable/GrokParticipant.js'
-import { RotationModerator } from '../services/roundtable/Moderator.js'
+import { RotationModerator, LoopingModerator, isApprovedVerdict } from '../services/roundtable/Moderator.js'
 import { createClaudeTurnPort } from '../services/roundtable/createClaudeTurnPort.js'
 
 const settingsService = new SettingsService()
 const providerService = new ProviderService()
 
+// Loop-mode role instructions (injected only when `loop` is set). They turn the
+// roster into a planner → implementer → reviewer pipeline and give the moderator
+// its stop signal: the reviewer must end with a VERDICT line (see isApprovedVerdict).
+const LOOP_INSTRUCTIONS = {
+  claude:
+    'You are the PLANNER. Turn the user goal into a concrete, ordered implementation plan for the others to execute. If the reviewer asked for revisions last round, refine the plan to address them.',
+  codex:
+    "You are the IMPLEMENTER. Execute the current plan using your available tools (including unity-mcp if configured). Report concisely what you changed.",
+  grok:
+    'You are the REVIEWER. Critically review the plan and the implementation against the user goal. End your message with EXACTLY one line: "VERDICT: APPROVED" if the goal is met, otherwise "VERDICT: REVISE: <what to fix>".',
+} as const
+
 const roundtableController = new RoundtableController({
-  buildParticipants: async (sessionId) => {
+  buildParticipants: async (sessionId, loop) => {
     // Pin codex/grok to the session's chosen folder so act-mode writes land there
     // instead of the sidecar's cwd. (claude already inherits workDir via conversationService.)
     const cwd = await resolveSessionWorkDir(sessionId)
+    const ins = loop ? LOOP_INSTRUCTIONS : { claude: undefined, codex: undefined, grok: undefined }
     return new Map([
-      ['claude', new ClaudeParticipant(createClaudeTurnPort(sessionId))],
-      ['codex', new CodexParticipant((argv) => Bun.spawn(argv, { cwd, stdout: 'pipe' }))],
-      ['grok', new GrokParticipant((argv) => Bun.spawn(argv, { cwd, stdout: 'pipe' }))],
+      ['claude', new ClaudeParticipant(createClaudeTurnPort(sessionId), ins.claude)],
+      ['codex', new CodexParticipant((argv) => Bun.spawn(argv, { cwd, stdout: 'pipe' }), undefined, ins.codex)],
+      ['grok', new GrokParticipant((argv) => Bun.spawn(argv, { cwd, stdout: 'pipe' }), undefined, ins.grok)],
     ])
   },
-  // Fixed rotation (claude → codex → grok → done) instead of an LLM moderator.
-  // The old moderator ran a full Claude turn — on its own spawned CLI session —
-  // before EVERY contribution, which was the roundtable's main latency tax.
-  // The roster order from buildParticipants is the planner→dev→reviewer pipeline.
-  buildModerator: (_sessionId, ids) => new RotationModerator(ids),
+  // Default: fixed single pass (claude → codex → grok → done), no LLM moderator —
+  // the old moderator ran a full Claude turn before EVERY contribution, the main
+  // latency tax. Loop mode instead cycles the roster until grok's VERDICT approves
+  // (maxRounds is the hard ceiling). Roster order is the planner→dev→reviewer pipeline.
+  buildModerator: (_sessionId, ids, loop) =>
+    loop ? new LoopingModerator(ids, 'grok', isApprovedVerdict) : new RotationModerator(ids),
   now: () => Date.now(),
   maxRounds: 12,
 })
@@ -234,6 +248,7 @@ export const handleWebSocket = {
                 sessionId,
                 message.content,
                 message.modes,
+                message.loop ?? false,
                 (m) => sendToSession(sessionId, m),
               )
             } catch (err) {

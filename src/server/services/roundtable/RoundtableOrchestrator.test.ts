@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { RoundtableOrchestrator } from './RoundtableOrchestrator.js'
 import type { RoundtableEvent } from './RoundtableOrchestrator.js'
-import { Moderator, RotationModerator } from './Moderator.js'
+import { RotationModerator, LoopingModerator, isApprovedVerdict, type ModeratorLike } from './Moderator.js'
 import type { Participant } from './Participant.js'
 import { createTranscript, appendEntry } from './transcript.js'
 import type { CapabilityMode, ParticipantEvent, ParticipantId } from './types.js'
@@ -16,10 +16,9 @@ function fakeParticipant(id: ParticipantId, line: string): Participant {
   }
 }
 
-function scriptedModerator(seq: Array<ParticipantId | 'done'>, ids: ParticipantId[]) {
+function scriptedModerator(seq: Array<ParticipantId | 'done'>): ModeratorLike {
   let i = 0
-  const complete = async () => JSON.stringify({ nextSpeaker: seq[i++] ?? 'done' })
-  return new Moderator(complete, ids)
+  return { decide: async () => ({ nextSpeaker: seq[i++] ?? 'done' }) }
 }
 
 describe('RoundtableOrchestrator', () => {
@@ -30,7 +29,7 @@ describe('RoundtableOrchestrator', () => {
     ])
     const orch = new RoundtableOrchestrator({
       participants,
-      moderator: scriptedModerator(['claude', 'codex', 'done'], ['claude', 'codex']),
+      moderator: scriptedModerator(['claude', 'codex', 'done']),
       modes: new Map<ParticipantId, CapabilityMode>([['claude', 'discuss'], ['codex', 'discuss']]),
       maxRounds: 12,
     })
@@ -55,7 +54,7 @@ describe('RoundtableOrchestrator', () => {
     ])
     const orch = new RoundtableOrchestrator({
       participants,
-      moderator: scriptedModerator(['codex', 'claude', 'done'], ['claude', 'codex']),
+      moderator: scriptedModerator(['codex', 'claude', 'done']),
       modes: new Map<ParticipantId, CapabilityMode>([['claude', 'discuss'], ['codex', 'discuss']]),
       maxRounds: 12,
     })
@@ -74,7 +73,7 @@ describe('RoundtableOrchestrator', () => {
     ])
     const orch = new RoundtableOrchestrator({
       participants,
-      moderator: scriptedModerator(['done', 'done'], ['claude', 'codex']),
+      moderator: scriptedModerator(['done', 'done']),
       modes: new Map<ParticipantId, CapabilityMode>([['claude', 'discuss'], ['codex', 'discuss']]),
       maxRounds: 12,
     })
@@ -112,8 +111,26 @@ describe('RoundtableOrchestrator', () => {
     expect(events.at(-1)).toEqual({ kind: 'complete' })
   })
 
+  test('LoopingModerator cycles the roster and stops only when the reviewer approves', async () => {
+    const m = new LoopingModerator(['claude', 'codex', 'grok'], 'grok', isApprovedVerdict)
+    const t = createTranscript()
+    const next = async (author: ParticipantId | 'user', text: string) => {
+      t.entries.push({ author, text, timestamp: t.entries.length + 1 })
+      return (await m.decide(t)).nextSpeaker
+    }
+    expect(await next('user', 'build a game')).toBe('claude')
+    expect(await next('claude', 'plan')).toBe('codex')
+    expect(await next('codex', 'built')).toBe('grok')
+    // reviewer asks for changes → loop back to planner
+    expect(await next('grok', 'rough. VERDICT: REVISE: add sound')).toBe('claude')
+    expect(await next('claude', 'plan v2')).toBe('codex')
+    expect(await next('codex', 'built v2')).toBe('grok')
+    // reviewer approves → done
+    expect(await next('grok', 'ship it. VERDICT: APPROVED')).toBe('done')
+  })
+
   test('stops at maxRounds and emits round-limit', async () => {
-    const never = new Moderator(async () => JSON.stringify({ nextSpeaker: 'claude' }), ['claude'])
+    const never: ModeratorLike = { decide: async () => ({ nextSpeaker: 'claude' }) }
     const orch = new RoundtableOrchestrator({
       participants: new Map([['claude', fakeParticipant('claude', 'x')]]),
       moderator: never,

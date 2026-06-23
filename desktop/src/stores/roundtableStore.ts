@@ -109,6 +109,7 @@ type RoundtableStore = {
     sessionId: string,
     content: string,
     modes: { claude?: RoundtableCapabilityMode; codex?: RoundtableCapabilityMode; grok?: RoundtableCapabilityMode },
+    loop?: boolean,
   ) => void
   stopRoundtable: (sessionId: string) => void
   resetSession: (sessionId: string) => void
@@ -124,7 +125,7 @@ export const useRoundtableStore = create<RoundtableStore>()(
       const current = state.sessions[sessionId] ?? emptyRoundtableSession()
       return { sessions: { ...state.sessions, [sessionId]: reduceRoundtableEvent(current, event) } }
     }),
-  startRoundtable: (sessionId, content, modes) => {
+  startRoundtable: (sessionId, content, modes, loop) => {
     set((state) => {
       const current = state.sessions[sessionId] ?? emptyRoundtableSession()
       return {
@@ -142,7 +143,7 @@ export const useRoundtableStore = create<RoundtableStore>()(
         },
       }
     })
-    wsManager.send(sessionId, { type: 'roundtable_start', content, modes })
+    wsManager.send(sessionId, { type: 'roundtable_start', content, modes, loop })
   },
   stopRoundtable: (sessionId) => {
     wsManager.send(sessionId, { type: 'roundtable_stop' })

@@ -28,6 +28,5 @@ export type ParticipantEvent =
 
 export type ModeratorDecision = {
   nextSpeaker: ParticipantId | 'done'
-  promptForSpeaker?: string
   reason?: string
 }

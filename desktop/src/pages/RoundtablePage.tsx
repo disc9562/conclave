@@ -25,8 +25,22 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
   const composingRef = useRef(false)
   // Set when Start is pressed; opens the write-permission dialog before sending.
   const [awaitingApproval, setAwaitingApproval] = useState(false)
+  // Loop mode: claude(plan) → codex(act) → grok(review) cycles until grok's
+  // VERDICT approves (backend enforces a maxRounds ceiling). Off = single pass.
+  const [loop, setLoop] = useState(false)
 
   const running = session.status === 'running'
+
+  // Show a "thinking…" pulse while a speaker is active but hasn't streamed any
+  // text yet. Mainly for codex, which (unlike claude/grok) emits its whole turn
+  // at once — without this the page sits blank between speaker-start and the dump.
+  // Once the speaker's own message bubble starts filling, the bubble is the
+  // progress signal, so hide the pulse.
+  const last = session.entries[session.entries.length - 1]
+  const thinking =
+    running &&
+    session.activeSpeaker &&
+    !(last?.kind === 'message' && last.author === session.activeSpeaker)
 
   // Pressing Start no longer sends immediately — it opens one approval dialog
   // (Claude-Code-desktop style). The answer decides every agent's mode at once.
@@ -40,7 +54,7 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
   // false → all 'discuss' (read-only, propose only).
   const launch = (allowWrites: boolean) => {
     const mode: RoundtableCapabilityMode = allowWrites ? 'act' : 'discuss'
-    startRoundtable(sessionId, input.trim(), { claude: mode, codex: mode, grok: mode })
+    startRoundtable(sessionId, input.trim(), { claude: mode, codex: mode, grok: mode }, loop)
     setInput('')
     setAwaitingApproval(false)
   }
@@ -54,6 +68,20 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
           approval dialog, so the old per-agent act toggles are gone. */}
       <div className="flex items-center gap-2 border-b border-[var(--color-border-separator)] px-4 py-2.5">
         <span className="text-xs font-semibold text-[var(--color-text-secondary)]">圓桌會議</span>
+
+        <label
+          className="flex items-center gap-1.5 text-xs text-[var(--color-text-tertiary)] cursor-pointer select-none"
+          title="開啟後 claude 規劃 → codex 用工具實作 → grok 審查，循環到 grok 放行(有回合上限)"
+        >
+          <input
+            type="checkbox"
+            checked={loop}
+            disabled={running}
+            onChange={(e) => setLoop(e.target.checked)}
+            className="accent-[var(--color-primary)]"
+          />
+          循環模式
+        </label>
 
         {workDir && (
           <span
@@ -140,6 +168,19 @@ export default function RoundtablePage({ sessionId }: { sessionId: string }) {
             </div>
           )
         })}
+
+        {thinking && (
+          <div
+            className="flex items-center gap-2 text-xs italic"
+            style={{ color: participantColorHex(session.activeSpeaker!) }}
+          >
+            <span
+              className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"
+              style={{ backgroundColor: participantColorHex(session.activeSpeaker!) }}
+            />
+            {session.activeSpeaker} 思考中…
+          </div>
+        )}
 
         {pendingPermission && (
           <PermissionDialog
