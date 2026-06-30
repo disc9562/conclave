@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { RoundtableOrchestrator } from './RoundtableOrchestrator.js'
 import type { RoundtableEvent } from './RoundtableOrchestrator.js'
-import { RotationModerator, LoopingModerator, isApprovedVerdict, type ModeratorLike } from './Moderator.js'
+import { RotationModerator, PlanReviewModerator, isApprovedVerdict, type ModeratorLike } from './Moderator.js'
 import type { Participant } from './Participant.js'
 import { createTranscript, appendEntry } from './transcript.js'
 import type { CapabilityMode, ParticipantEvent, ParticipantId } from './types.js'
@@ -111,22 +111,24 @@ describe('RoundtableOrchestrator', () => {
     expect(events.at(-1)).toEqual({ kind: 'complete' })
   })
 
-  test('LoopingModerator cycles the roster and stops only when the reviewer approves', async () => {
-    const m = new LoopingModerator(['claude', 'codex', 'grok'], 'grok', isApprovedVerdict)
+  test('PlanReviewModerator reviews the plan before implementing, loops on REVISE', async () => {
+    const m = new PlanReviewModerator('claude', 'codex', 'grok', isApprovedVerdict)
     const t = createTranscript()
     const next = async (author: ParticipantId | 'user', text: string) => {
       t.entries.push({ author, text, timestamp: t.entries.length + 1 })
       return (await m.decide(t)).nextSpeaker
     }
     expect(await next('user', 'build a game')).toBe('claude')
-    expect(await next('claude', 'plan')).toBe('codex')
-    expect(await next('codex', 'built')).toBe('grok')
-    // reviewer asks for changes → loop back to planner
-    expect(await next('grok', 'rough. VERDICT: REVISE: add sound')).toBe('claude')
-    expect(await next('claude', 'plan v2')).toBe('codex')
-    expect(await next('codex', 'built v2')).toBe('grok')
-    // reviewer approves → done
-    expect(await next('grok', 'ship it. VERDICT: APPROVED')).toBe('done')
+    // plan goes to the reviewer FIRST, before any implementation
+    expect(await next('claude', 'plan')).toBe('grok')
+    // reviewer rejects the plan → back to planner, codex never ran
+    expect(await next('grok', 'too vague. VERDICT: REVISE: name the scenes')).toBe('claude')
+    expect(await next('claude', 'plan v2')).toBe('grok')
+    // plan approved → unlocks the implementer (NOT done — nothing built yet)
+    expect(await next('grok', 'solid. VERDICT: APPROVED')).toBe('codex')
+    expect(await next('codex', 'built it')).toBe('grok')
+    // approval after implementation → done
+    expect(await next('grok', 'works. VERDICT: APPROVED')).toBe('done')
   })
 
   test('stops at maxRounds and emits round-limit', async () => {

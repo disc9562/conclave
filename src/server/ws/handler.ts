@@ -31,7 +31,7 @@ import { RoundtableController } from '../services/roundtable/RoundtableControlle
 import { ClaudeParticipant } from '../services/roundtable/ClaudeParticipant.js'
 import { CodexParticipant } from '../services/roundtable/CodexParticipant.js'
 import { GrokParticipant } from '../services/roundtable/GrokParticipant.js'
-import { RotationModerator, LoopingModerator, isApprovedVerdict } from '../services/roundtable/Moderator.js'
+import { RotationModerator, PlanReviewModerator, isApprovedVerdict } from '../services/roundtable/Moderator.js'
 import { createClaudeTurnPort } from '../services/roundtable/createClaudeTurnPort.js'
 
 const settingsService = new SettingsService()
@@ -46,7 +46,7 @@ const LOOP_INSTRUCTIONS = {
   codex:
     "You are the IMPLEMENTER. Execute the current plan using your available tools (including unity-mcp if configured). Report concisely what you changed.",
   grok:
-    'You are the REVIEWER. Critically review the plan and the implementation against the user goal. End your message with EXACTLY one line: "VERDICT: APPROVED" if the goal is met, otherwise "VERDICT: REVISE: <what to fix>".',
+    'You are the REVIEWER, and you gate the loop. If no implementation has happened yet, you are reviewing the PLAN: reply "VERDICT: APPROVED" when the plan is sound enough to implement, otherwise "VERDICT: REVISE: <plan fixes>". Once an implementation exists, review it against the user goal: "VERDICT: APPROVED" only if the goal is met, otherwise "VERDICT: REVISE: <what to fix>". End your message with EXACTLY one such VERDICT line.',
 } as const
 
 const roundtableController = new RoundtableController({
@@ -63,10 +63,13 @@ const roundtableController = new RoundtableController({
   },
   // Default: fixed single pass (claude → codex → grok → done), no LLM moderator —
   // the old moderator ran a full Claude turn before EVERY contribution, the main
-  // latency tax. Loop mode instead cycles the roster until grok's VERDICT approves
-  // (maxRounds is the hard ceiling). Roster order is the planner→dev→reviewer pipeline.
-  buildModerator: (_sessionId, ids, loop) =>
-    loop ? new LoopingModerator(ids, 'grok', isApprovedVerdict) : new RotationModerator(ids),
+  // latency tax. Loop mode runs a plan-review pipeline: grok vets claude's plan
+  // before codex implements, and again after, looping back to claude on REVISE
+  // until grok approves the result (maxRounds is the hard ceiling).
+  buildModerator: (_sessionId, _ids, loop) =>
+    loop
+      ? new PlanReviewModerator('claude', 'codex', 'grok', isApprovedVerdict)
+      : new RotationModerator(_ids),
   now: () => Date.now(),
   maxRounds: 12,
 })
